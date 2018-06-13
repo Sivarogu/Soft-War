@@ -1,0 +1,26 @@
+{
+  "name": "softwar-lib-client",
+  "version": "1.0.0",
+  "description": "Softwar project client JS library for IA quick building and easy interaction with servers.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Sivarogu/SoftWar.git"
+  },
+  "keywords": [
+    "Softwar",
+    "ZMQ"
+  ],
+  "author": "LTDLRAGDA",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "bugs": {
+    "url": "https://github.com/Sivarogu/SoftWar/issues"
+  },
+  "homepage": "https://github.com/Sivarogu/SoftWar#readme",
+  "devDependencies": {
+    "typescript": "^2.9.1"
+  }
+}
