@@ -1,6 +1,11 @@
 # SoftWar
 SoftWar Projet ETNA
 
+## Begin
+```sh
+./install.sh
+```
+
 ## How to...
 ### 1. Develop
 You can make the server makefile watch for changes and recompile/run using

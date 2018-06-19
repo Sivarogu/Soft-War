@@ -1,8 +1,8 @@
 {
-  "name": "@ltdlragda/softwar-lib-client",
+  "name": "softwar-agent-launcher",
   "version": "1.0.0",
-  "description": "Softwar project client JS library for IA quick building and easy interaction with servers.",
-  "main": "dist/index.js",
+  "description": "Softwar project IA client launcher.",
+  "main": "dist/launcher.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,7 +21,11 @@
   },
   "homepage": "https://github.com/Sivarogu/SoftWar#readme",
   "devDependencies": {
+    "@types/node": "^10.3.2",
     "typescript": "^2.9.1"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@ltdlragda/softwar-lib-client": "file:../lib-client"
+  }
 }

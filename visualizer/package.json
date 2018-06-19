@@ -1,5 +1,5 @@
 {
-  "name": "@ltdlragda/softwar-lib-client",
+  "name": "@ltdlragda/softwar-viualizer",
   "version": "1.0.0",
   "description": "Softwar project client JS library for IA quick building and easy interaction with servers.",
   "main": "dist/index.js",
@@ -23,5 +23,9 @@
   "devDependencies": {
     "typescript": "^2.9.1"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@ltdlragda/softwar-lib-client": "file:../lib-client",
+    "jquery": "^3.3.1"
+  }
 }
