@@ -1,12 +1,19 @@
-const setup = require('./setup');
+const setup = require('./setupReq');
+const getGameManager = require('./GameManager');
 
-const {
-  // requester,
-  // identity,
-  send,
-  done,
-} = setup();
-
-const Signals = require('./signals')(send);
-
-module.exports = done.then(() => Signals);
+module.exports = (config) => {
+  const {
+    // requester,
+    identity,
+    send,
+    done,
+  } = setup(config);
+  const Signals = require('./signals')(send);
+  const Manager = getGameManager({ identity, ...config });
+  return {
+    Manager,
+    connected: done.then(() => {
+      return Signals;
+    }),
+  };
+};

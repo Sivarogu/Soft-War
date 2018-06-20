@@ -1,13 +1,12 @@
 const zmq = require('zeromq');
-const { PROTOCOL,
-        ADDR,
-        PORT,
-        RETRY,
-        IDENTITY_BASE } = require('./config');
 const { getRandomID } = require('./helpers');
 const { parseMessage } = require('./utils');
 
-module.exports = function setup() {
+module.exports = function setup({ PROTOCOL_ROUTER,
+  ADDR_ROUTER,
+  PORT_ROUTER,
+  RETRY,
+  IDENTITY_BASE }) {
   const waitingForRep = [];
 
   console.log('Starting Client...');
@@ -20,7 +19,6 @@ module.exports = function setup() {
   function send(command, data = null) {
     const msg = `${command}|${data}`;
     requester.send(msg);
-    console.log('Sent: ', msg);
     return new Promise((resolve, reject) => {
       waitingForRep.push((rep) => {
         const { status, data } = parseMessage(rep);
@@ -31,7 +29,6 @@ module.exports = function setup() {
 
   function listenForReplies() {
     requester.on("message", function(reply) {
-      console.log('Received: ', reply.toString());
       const callback = waitingForRep.shift();
       if (callback) {
         callback(reply.toString());
@@ -41,7 +38,6 @@ module.exports = function setup() {
 
   async function identify() {
     console.log('Identifying client to server...');
-    identity = `${IDENTITY_BASE}${getRandomID(10)}`;
     let i = 1;
     let identified = false;
     while (!identified && i < RETRY) {
@@ -50,6 +46,7 @@ module.exports = function setup() {
         await send('identify', identity);
         identified = true;
       } catch (err) {
+        identity = `${IDENTITY_BASE}${getRandomID(10)}`;
         identified = false;
       }
     }
@@ -64,12 +61,13 @@ module.exports = function setup() {
     requester.close();
   });
 
-  requester.connect(`${PROTOCOL}://${ADDR}:${PORT}`);
+  requester.connect(`${PROTOCOL_ROUTER}://${ADDR_ROUTER}:${PORT_ROUTER}`);
 
   const done = new Promise((resolve, reject) => {
     requester.on('connect', async function(fd, ep) {
       console.log('MONITOR -- connect, endpoint:', ep);
       await identify();
+      console.log(`Successfuly identified to server as ${identity}`);
       resolve();
     });
   });

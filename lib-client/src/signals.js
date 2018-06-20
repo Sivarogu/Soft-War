@@ -1,4 +1,4 @@
-var zmq = require('zeromq');
+const zmq = require('zeromq');
 
 module.exports = function (send) {
   return ({
