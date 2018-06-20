@@ -4,6 +4,11 @@ module.exports = function(config) {
   return class GameManager {
     constructor() {
       this.gameInfo = null;
+      this.onCycle = this.onCycle.bind(this);
+      this.onStart = this.onStart.bind(this);
+      this.onVictory = this.onVictory.bind(this);
+      this.onDeath = this.onDeath.bind(this);
+      this.onGameOver = this.onGameOver.bind(this);
       const EventType = {
         0: this.onCycle,
         1: this.onStart,
