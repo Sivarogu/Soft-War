@@ -1,6 +1,7 @@
-#include <stdio.h>
+#include "srv_router.h"
 
-int main() {
-	printf("This is a sample softwar main :)\n");
+int main()
+{
+	start_router();
 	return 0;
 }
