@@ -20,7 +20,8 @@ SOURCE_SUB_DIRS		=
 SOURCE_INCLUDES		=	main.c \
 						srv_router.c \
 						command_hub.c \
-						commands.c
+						commands.c \
+						structs.c
 
 
 SOURCE_FILES		=	$(addprefix $(SOURCE_DIR)/,$(SOURCE_INCLUDES))

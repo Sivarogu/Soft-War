@@ -2,6 +2,7 @@
 
 int main()
 {
-	start_router();
+	t_game_info *game_info = new_game_info();
+	destroy_game_info(game_info);
 	return 0;
 }

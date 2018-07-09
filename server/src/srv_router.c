@@ -2,14 +2,15 @@
 
 void start_router()
 {
-    zsock_t *router = zsock_new(ZMQ_ROUTER);
     t_command *message;
 
+    t_game_info *game_info = (t_game_info *)(arg_game_info);
+    zsock_t *router = zsock_new(ZMQ_ROUTER);
     zsock_bind(router, "tcp://*:8765");
     while (!zsys_interrupted)
     {
         message = cmd_recv(router);
-        handle_cmd(router, message);
+        handle_cmd(game_info, router, message);
     }
     zsock_destroy(&router);
 }
@@ -30,8 +31,8 @@ t_command *cmd_recv(zsock_t *router)
     zmessage = zmsg_pop(rcv_data);
     zmsg_destroy(&rcv_data);
     message = zframe_strdup(zmessage);
-    command->name = strtok(message, delimiter);
-    command->params = strtok(NULL, delimiter);
+    command->name = strtok_r(message, delimiter, &message);
+    command->params = strtok_r(NULL, delimiter, &message);
     zframe_destroy(&empty);
     zframe_destroy(&zmessage);
     return command;
