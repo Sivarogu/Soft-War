@@ -1,6 +1,6 @@
 #include "srv_router.h"
 
-void start_router()
+void *start_router(void *arg_game_info)
 {
     t_command *message;
 
@@ -13,6 +13,7 @@ void start_router()
         handle_cmd(game_info, router, message);
     }
     zsock_destroy(&router);
+    pthread_exit(NULL);
 }
 
 t_command *cmd_recv(zsock_t *router)
