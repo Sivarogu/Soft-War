@@ -5,6 +5,12 @@ t_game_info *new_game_info()
     t_game_info *new_game_info;
 
     new_game_info = malloc(sizeof(t_game_info));
+    if (new_game_info == NULL)
+        return NULL;
+    if (pthread_mutex_init(&new_game_info->mutex_game, NULL) != 0) {
+        free(new_game_info);
+        return NULL;
+    }
     new_game_info->first_player = NULL;
     new_game_info->game_status = 0;
     return new_game_info;

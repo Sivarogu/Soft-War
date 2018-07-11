@@ -7,6 +7,7 @@ typedef struct s_command {
     char *params;
 } t_command;
 
+//TODO : handle action points
 typedef struct s_player {
     char *id;
     char *socket_id;
@@ -30,12 +31,12 @@ typedef struct s_energy {
 typedef struct s_game_info {
     uint map_size;
     uint game_status;
+    pthread_mutex_t mutex_game;
     t_player *first_player;
     t_energy *first_energy;
 } t_game_info;
 
-typedef struct s_action
-{
+typedef struct s_action {
     char *name;
     void (*exec)(t_game_info *game_info, zsock_t *router, t_command *command);
 } t_action;

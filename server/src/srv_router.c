@@ -1,12 +1,12 @@
 #include "srv_router.h"
 
-void *start_router(void *arg_game_info)
+void *start_router(void *srv_game_info)
 {
     t_command *message;
 
-    t_game_info *game_info = (t_game_info *)(arg_game_info);
+    t_game_info *game_info = (t_game_info *)(srv_game_info);
     zsock_t *router = zsock_new(ZMQ_ROUTER);
-    zsock_bind(router, "tcp://*:8765");
+    zsock_bind(router, "tcp://*:4242");
     while (!zsys_interrupted)
     {
         message = cmd_recv(router);
