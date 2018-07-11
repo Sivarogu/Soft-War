@@ -16,7 +16,10 @@ void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command)
     {
         if (!strcmp(action_list[index].name, command->name))
         {
+            //TODO tester le lock et unlock
+            pthread_mutex_lock(&game_info->mutex_game);
             action_list[index].exec(game_info, router, command);
+            pthread_mutex_unlock(&game_info->mutex_game);
             cmd_found = true;
             break;
         }
