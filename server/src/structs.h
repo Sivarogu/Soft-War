@@ -7,11 +7,11 @@ typedef struct s_command {
     char *params;
 } t_command;
 
-//TODO : handle action points
 typedef struct s_player {
     char *id;
     char *socket_id;
     int energy;
+    int actions;
     int x;
     int y;
     int looking;

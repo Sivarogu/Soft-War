@@ -24,6 +24,7 @@ t_player *new_player(char *socket_id, char *identity, t_game_info *game_info)
     new_player->socket_id = socket_id;
     new_player->id = identity;
     new_player->energy = 50;
+    new_player->actions = 1;
     new_player->stunned = 0;
     new_player->next = NULL;
     new_player->prev = NULL;
