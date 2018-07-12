@@ -19,15 +19,15 @@ void action_identify(t_game_info *game_info, zsock_t *router, t_command *command
         send_response(router, command->identity, "ko", "no identifier sent");
         return;
     }
+    char *cmd_identity = zframe_strhex(command->identity);
     while (player != NULL && ++nb_player < 4) {
         if (existing_player == NULL
-            && (cmd_identity = zframe_strhex(command->identity))
             && strcmp(player->socket_id, cmd_identity) == 0) {
             existing_player = player;
-            free(cmd_identity);
         }
         if (strcmp(player->id, command->params) == 0) {
             send_response(router, command->identity, "ko", "identity already exists");
+            free(cmd_identity);
             return;
         }
         player = player->next;
@@ -42,4 +42,5 @@ void action_identify(t_game_info *game_info, zsock_t *router, t_command *command
         //TODO : add player init location
         send_response(router, command->identity, "ok", command->params);
     }
+    free(cmd_identity);
 }
