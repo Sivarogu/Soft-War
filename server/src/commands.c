@@ -9,38 +9,46 @@ void action_ping(t_game_info *game_info, zsock_t *router, t_command *command)
 
 void action_identify(t_game_info *game_info, zsock_t *router, t_command *command)
 {
+    t_player *existing_player;
     char *cmd_identity;
+    t_player *player;
+    int nb_player;
 
-    t_player *existing_player = NULL;
-    t_player *player = game_info->first_player;
-    int nb_player = 0;
     printf("Commande : %s from %s with params : %s\n", command->name, zframe_strhex(command->identity), command->params);
     if (command->params == NULL) {
         send_response(router, command->identity, "ko", "no identifier sent");
         return;
+    } else if (identity_already_exists(game_info, command->params)) {
+        send_response(router, command->identity, "ko", "identity already exists");
+        return;
     }
-    char *cmd_identity = zframe_strhex(command->identity);
-    while (player != NULL && ++nb_player < 4) {
-        if (existing_player == NULL
-            && strcmp(player->socket_id, cmd_identity) == 0) {
-            existing_player = player;
-        }
-        if (strcmp(player->id, command->params) == 0) {
-            send_response(router, command->identity, "ko", "identity already exists");
-            free(cmd_identity);
-            return;
-        }
-        player = player->next;
-    }
-    if (existing_player != NULL) {
+    cmd_identity = zframe_strhex(command->identity);
+    if ((existing_player = get_player_by_sock_id(game_info, cmd_identity))) {
+        free(existing_player->id);
         existing_player->id = strdup(command->params);
-        send_response(router, command->identity, "ok", command->params);
-    } else if (nb_player == 4) {
+        send_response(router, command->identity, "ok", "null");
+    } else if ((nb_player = get_nb_player(game_info)) >= 4) {
         send_response(router, command->identity, "ko", "game full");
     } else {
         player = new_player(zframe_strhex(command->identity), strdup(command->params), game_info);
-        //TODO : add player init location
-        send_response(router, command->identity, "ok", command->params);
+        init_player_location(player, game_info->map_size, nb_player + 1);
+        send_response(router, command->identity, "ok", "null");
+    }
+    free(cmd_identity);
+}
+
+void action_leave(t_game_info *game_info, zsock_t *router, t_command *command)
+{
+    t_player *current_player;
+    char *cmd_identity;
+
+    printf("Commande : %s from %s with params : %s\n", command->name, zframe_strhex(command->identity), command->params);
+    cmd_identity = zframe_strhex(command->identity);
+    if ((current_player = get_player_by_sock_id(game_info, cmd_identity))) {
+        destroy_player(current_player, game_info);
+        send_response(router, command->identity, "ok", "null");
+    } else {
+        send_response(router, command->identity, "ko", "null");
     }
     free(cmd_identity);
 }

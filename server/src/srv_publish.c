@@ -4,7 +4,7 @@ void *start_publish(void *srv_game_info) {
     t_game_info *game_info = (t_game_info *)(srv_game_info);
     zsock_t *publish = zsock_new(ZMQ_PUB);
     zsock_bind(publish, "tcp://*:4243");
-    while (!zsys_interrupted)
+    while (!zsys_interrupted && game_info->game_status != -1)
     {
         zclock_sleep(5000);
         char message[255];
