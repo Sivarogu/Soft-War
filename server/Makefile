@@ -17,7 +17,11 @@ SOURCE_DIR			=	src
 SOURCE_SUB_DIRS		=
 
 
-SOURCE_INCLUDES		=	main.c
+SOURCE_INCLUDES		=	main.c \
+						srv_router.c \
+						command_hub.c \
+						commands.c \
+						structs.c
 
 
 SOURCE_FILES		=	$(addprefix $(SOURCE_DIR)/,$(SOURCE_INCLUDES))
@@ -34,6 +38,8 @@ COMPILER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -Wno-missing-field-initialize
 
 LINKER_NAME			=	gcc
 LINKER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -pedantic -lm -g
+LINKER_LIBS			=	-lczmq \
+						-lzmq
 
 # shorthands
 _MAKE				=	make
@@ -42,7 +48,7 @@ _RM_DIR				=	rm -rf
 _WATCHER			=	nodemon
 _MKDIR				=	mkdir -p
 _WATCH				=	$(_WATCHER) --watch "$(SOURCE_DIR)" --ext c,h
-_LD					=	$(LINKER_NAME) $(LINKER_FLAGS)
+_LD					=	$(LINKER_NAME) $(LINKER_FLAGS) $(LINKER_LIBS)
 _CC					=	$(COMPILER_NAME) $(COMPILER_FLAGS)
 
 # rules
