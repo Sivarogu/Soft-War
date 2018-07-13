@@ -4,21 +4,21 @@
 #include <string.h>
 
 // Pour avoir un client de test (ex: envoyer ping|null)
-// gcc client.c -o ./dist/softwar-client -lczmq -lzmq
+// gcc client_req.c -o ./softwar-req-client -lczmq -lzmq
 
 int main()
 {
     printf("Connecting to server...");
     char *msg;
     zsock_t *req = zsock_new(ZMQ_REQ);
-    if (zsock_connect(req, "tcp://localhost:8765") != 0) {
+    if (zsock_connect(req, "tcp://localhost:4242") != 0) {
         printf("FAIL\n");
         return EXIT_FAILURE;
     } else {
         printf("SUCCESS...so far...\n");
     }
-    
-    while(1)
+
+    while (!zsys_interrupted)
     {
         scanf("%[^\n]%*c", msg);
         if (strcmp(msg, "exit") == 0) {

@@ -19,6 +19,7 @@ SOURCE_SUB_DIRS		=
 
 SOURCE_INCLUDES		=	main.c \
 						srv_router.c \
+						srv_publish.c \
 						command_hub.c \
 						commands.c \
 						structs.c
