@@ -11,8 +11,15 @@ t_game_info *new_game_info()
         free(new_game_info);
         return NULL;
     }
+    if (pthread_cond_init(&new_game_info->mutex_start_cond, NULL) != 0) {
+        pthread_mutex_destroy(&new_game_info->mutex_game);
+        free(new_game_info);
+        return NULL;
+    }
     new_game_info->first_player = NULL;
-    new_game_info->game_status = 0;
+    new_game_info->first_energy = NULL;
+    new_game_info->map_size = 5;
+    new_game_info->game_status = PENDING;
     return new_game_info;
 }
 
@@ -72,6 +79,8 @@ void destroy_game_info(t_game_info *game_info)
     while (game_info->first_energy != NULL) {
         destroy_energy(game_info->first_energy, game_info);
     }
+    pthread_mutex_destroy(&game_info->mutex_game);
+    pthread_cond_destroy(&game_info->mutex_start_cond);
     free(game_info);
 }
 

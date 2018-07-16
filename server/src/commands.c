@@ -29,6 +29,8 @@ void action_identify(t_game_info *game_info, zsock_t *router, t_command *command
         send_response(router, command->identity, "ok", "null");
     } else if ((nb_player = get_nb_player(game_info)) >= 4) {
         send_response(router, command->identity, "ko", "game full");
+    } else if (game_info->game_status != PENDING) {
+        send_response(router, command->identity, "ko", "null");
     } else {
         player = new_player(zframe_strhex(command->identity), strdup(command->params), game_info);
         init_player_location(player, game_info->map_size, nb_player + 1);
