@@ -6,6 +6,7 @@ int main()
 	pthread_t thread_router;
 	pthread_t thread_publish;
 
+	srand(time(NULL));
 	t_game_info *game_info = new_game_info();
 	if (game_info == NULL)
 		return EXIT_FAILURE;
