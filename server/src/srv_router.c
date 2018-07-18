@@ -8,6 +8,7 @@ void *start_router(void *srv_game_info)
     zsock_t *router = zsock_new(ZMQ_ROUTER);
     zsock_bind(router, "tcp://*:4242");
     while (!zsys_interrupted && get_nb_player(game_info) < 4)
+    // while (!zsys_interrupted && get_nb_player(game_info) < 1)
     {
         message = cmd_recv(router);
         handle_lobby_cmd(game_info, router, message);
@@ -16,7 +17,10 @@ void *start_router(void *srv_game_info)
     game_info->game_status = ACTIVE;
     pthread_cond_signal(&game_info->mutex_start_cond);
     pthread_mutex_unlock(&game_info->mutex_game);
-    while (!zsys_interrupted && game_info->first_player)
+    while (!zsys_interrupted
+        // && game_info->first_player)
+        && game_info->first_player
+        && game_info->first_player->next)
     {
         message = cmd_recv(router);
         handle_game_cmd(game_info, router, message);

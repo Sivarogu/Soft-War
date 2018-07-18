@@ -15,8 +15,14 @@ enum NotificationType {
     CLIENT_WIN = 4
 };
 
-typedef struct s_command
-{
+enum LookingDir {
+    LEFT = 0,
+    UP = 1,
+    RIGHT = 2,
+    DOWN = 3
+};
+
+typedef struct s_command {
     zframe_t *identity;
     char *name;
     char *params;
@@ -29,7 +35,7 @@ typedef struct s_player {
     int actions;
     int x;
     int y;
-    int looking;
+    enum LookingDir looking;
     int stunned;
     struct s_player *next;
     struct s_player *prev;
@@ -62,6 +68,8 @@ t_player *new_player(char *socket_id, char *identity, t_game_info *game_info);
 t_energy *new_energy(t_game_info *game_info);
 
 t_player *get_player_by_sock_id(t_game_info *game_info, char *sock_id);
+t_player *get_player_by_id(t_game_info *game_info, char *id);
+char *get_player_id_by_pos(t_game_info *game_info, int x, int y);
 
 void destroy_game_info(t_game_info *game_info);
 void destroy_player(t_player * player, t_game_info * game_info);
