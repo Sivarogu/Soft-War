@@ -1,7 +1,7 @@
 #include "srv_publish.h"
 
 void *start_publish(void *srv_game_info) {
-    char message[255];
+    char message[36];
 
     t_game_info *game_info = (t_game_info *)(srv_game_info);
     zsock_t *publish = zsock_new(ZMQ_PUB);
@@ -12,6 +12,10 @@ void *start_publish(void *srv_game_info) {
     sprintf(message, "{\"notification_type\":%d,\"data\":null}", GAME_STARTED);
     if (zstr_send(publish, message) != 0)
         printf("Error sending pub message : %s", message);
+    char *cycle_info = json_encode_cycle(game_info);
+    if (zstr_send(publish, cycle_info) != 0)
+        printf("Error sending pub message : %s", message);
+    free(cycle_info);
     pthread_mutex_unlock(&game_info->mutex_game);
     zclock_sleep(5000);
     while (!zsys_interrupted && game_info->game_status != ENDED)
@@ -19,13 +23,15 @@ void *start_publish(void *srv_game_info) {
         pthread_mutex_lock(&game_info->mutex_game);
         new_game_cycle(game_info);
         handle_dead_players(game_info, publish);
-        sprintf(message, "Cycle notif. Player %s pos : x = %d, y = %d", game_info->first_player->id, game_info->first_player->x, game_info->first_player->y);
+        char *cycle_info = json_encode_cycle(game_info);
         pthread_mutex_unlock(&game_info->mutex_game);
-        if (zstr_send(publish, message) != 0) {
+        if (zstr_send(publish, cycle_info) != 0)
+        {
             printf("Error sending pub message : %s", message);
             break;
         }
         printf("Message envoyé : %s\n", message);
+        free(cycle_info);
         zclock_sleep(5000);
     }
     if (game_info->first_player) {

@@ -4,3 +4,4 @@
 #include <czmq.h>
 #include <pthread.h>
 #include <time.h>
+#include <jansson.h>
