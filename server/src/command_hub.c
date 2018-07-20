@@ -45,7 +45,6 @@ void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command, con
     {
         if (!strcmp(action_list[index].name, command->name))
         {
-            printf("Commande : %s from %s with params : %s\n", command->name, zframe_strhex(command->identity), command->params);
             //TODO tester le lock et unlock
             pthread_mutex_lock(&game_info->mutex_game);
             action_list[index].exec(game_info, router, command);
@@ -55,6 +54,7 @@ void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command, con
         }
         index++;
     }
+    printf("Commande : %s from %s with params : %s\n", command->name, zframe_strhex(command->identity), command->params);
     if (!cmd_found)
         send_response(router, command->identity, "ko", "null");
     destroy_command(command);

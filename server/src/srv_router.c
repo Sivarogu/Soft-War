@@ -5,7 +5,6 @@ void *start_router(void *srv_game_info)
     t_command *message;
 
     t_game_info *game_info = (t_game_info *)(srv_game_info);
-    // zsock_t *router = zsock_new_router("tcp://*:4242");
     zsock_t *router = zsock_new(ZMQ_ROUTER);
     zsock_bind(router, "tcp://*:4242");
     zsock_set_rcvtimeo(router, 500);
