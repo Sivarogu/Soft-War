@@ -1,10 +1,13 @@
 #include "json_encoder.h"
 
-char *json_encode_cycle(t_game_info *game_info)
+char *json_encode_cycle(t_game_info *game_info, char *prefix)
 {
     t_player *player = game_info->first_player;
     t_energy *energy = game_info->first_energy;
-    json_t *json_cycle = json_object(), *json_players = json_array(), *json_energies = json_array();
+    char *json_string_wo_prefix, *json_string;
+    json_t *json_cycle = json_object();
+    json_t *json_players = json_array();
+    json_t *json_energies = json_array();
 
     json_object_set_new(json_cycle, "map_size", json_integer(game_info->map_size));
     json_object_set_new(json_cycle, "game_status", json_integer(game_info->game_status));
@@ -18,7 +21,12 @@ char *json_encode_cycle(t_game_info *game_info)
     }
     json_object_set_new(json_cycle, "players", json_players);
     json_object_set_new(json_cycle, "energy_cells", json_energies);
-    return json_dumps(json_cycle, JSON_INDENT(2));
+    json_string_wo_prefix = json_dumps(json_cycle, JSON_INDENT(2));
+    json_string = malloc((strlen(prefix) + strlen(json_string_wo_prefix)) * sizeof(char));
+    strcpy(json_string, prefix);
+    strcat(json_string, json_string_wo_prefix);
+    free(json_string_wo_prefix);
+    return json_string;
 }
 
 json_t *json_encode_player(t_player *player)

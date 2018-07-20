@@ -19,8 +19,8 @@ int main()
     {
         printf("SUCCESS...so far...\n");
     }
-    // zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-    zsock_set_subscribe(subscriber, "");
+    zsock_set_subscribe(subscriber, "Global");
+    zsock_set_subscribe(subscriber, "a");
     sleep(1);
     while (!zsys_interrupted)
     {
