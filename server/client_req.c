@@ -20,7 +20,7 @@ int main()
 
     while (!zsys_interrupted)
     {
-        scanf("%[^\n]%*c", msg);
+        scanf("%s", msg);
         if (strcmp(msg, "exit") == 0) {
             break;
         }
