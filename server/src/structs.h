@@ -1,7 +1,22 @@
 #pragma once
 #include "librairies.h"
 
-typedef struct s_command {
+enum GameStatus {
+    PENDING = 0,
+    ACTIVE = 1,
+    ENDED = 2
+};
+
+enum NotificationType {
+    CYCLE_INFO = 0,
+    GAME_STARTED = 1,
+    GAME_FINISHED = 2,
+    CLIENT_DEAD = 3,
+    CLIENT_WIN = 4
+};
+
+typedef struct s_command
+{
     zframe_t *identity;
     char *name;
     char *params;
@@ -31,8 +46,9 @@ typedef struct s_energy {
 
 typedef struct s_game_info {
     int map_size;
-    int game_status;
+    enum GameStatus game_status;
     pthread_mutex_t mutex_game;
+    pthread_cond_t mutex_start_cond;
     t_player *first_player;
     t_energy *first_energy;
 } t_game_info;

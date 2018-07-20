@@ -12,14 +12,16 @@ void *start_router(void *srv_game_info)
         message = cmd_recv(router);
         handle_lobby_cmd(game_info, router, message);
     }
+    pthread_mutex_lock(&game_info->mutex_game);
+    game_info->game_status = ACTIVE;
+    pthread_cond_signal(&game_info->mutex_start_cond);
+    pthread_mutex_unlock(&game_info->mutex_game);
     while (!zsys_interrupted && game_info->first_player)
     {
         message = cmd_recv(router);
         handle_game_cmd(game_info, router, message);
     }
-    pthread_mutex_lock(&game_info->mutex_game);
-    game_info->game_status = -1;
-    pthread_mutex_unlock(&game_info->mutex_game);
+    game_info->game_status = ENDED;
     zsock_destroy(&router);
     pthread_exit(NULL);
 }
@@ -56,9 +58,7 @@ void send_response(zsock_t *socket, zframe_t *identity, char *result, char *data
 
     empty = zframe_new_empty();
     content = malloc((strlen(result) + strlen(data) + 2) * sizeof(char));
-    strcpy(content, result);
-    strcat(content, "|");
-    strcat(content, data);
+    sprintf(content, "%s|%s", result, data);
     zcontent = zframe_from(content);
     response = zmsg_new();
     zmsg_prepend(response, &identity);
