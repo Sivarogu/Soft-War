@@ -24,6 +24,7 @@ t_player *new_player(char *socket_id, char *identity, t_game_info *game_info)
     new_player->socket_id = socket_id;
     new_player->id = identity;
     new_player->energy = 50;
+    new_player->actions = 1;
     new_player->stunned = 0;
     new_player->next = NULL;
     new_player->prev = NULL;
@@ -49,6 +50,17 @@ t_energy *new_energy(t_game_info *game_info)
     }
     game_info->first_energy = new_energy;
     return new_energy;
+}
+
+t_player *get_player_by_sock_id(t_game_info *game_info, char *sock_id)
+{
+    t_player *player = game_info->first_player;
+    while (player != NULL) {
+        if (strcmp(player->socket_id, sock_id) == 0)
+            return player;
+        player = player->next;
+    }
+    return NULL;
 }
 
 void destroy_game_info(t_game_info *game_info)

@@ -1,12 +1,26 @@
 #include "command_hub.h"
 
-static const t_action action_list[3] = {
+static const t_action lobby_action_list[] = {
     {"ping", &action_ping},
     {"identify", &action_identify},
+    {"leave", &action_leave},
+    {NULL, NULL}};
+
+static const t_action game_action_list[] = {
+    {"identify", &action_identify},
+    {"leave", &action_leave},
     {NULL, NULL}
 };
 
-void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command)
+void handle_lobby_cmd(t_game_info *game_info, zsock_t *router, t_command *command) {
+    handle_cmd(game_info, router, command, lobby_action_list);
+}
+
+void handle_game_cmd(t_game_info *game_info, zsock_t *router, t_command *command) {
+    handle_cmd(game_info, router, command, game_action_list);
+}
+
+void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command, const t_action *action_list)
 {
     int index;
     bool cmd_found = false;
@@ -26,8 +40,6 @@ void handle_cmd(t_game_info *game_info, zsock_t *router, t_command *command)
         index++;
     }
     if (!cmd_found)
-    {
         send_response(router, command->identity, "ko", "null");
-    }
     destroy_command(command);
 }

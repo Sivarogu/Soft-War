@@ -22,6 +22,7 @@ SOURCE_INCLUDES		=	main.c \
 						srv_publish.c \
 						command_hub.c \
 						commands.c \
+						game_info.c \
 						structs.c
 
 

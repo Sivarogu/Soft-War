@@ -12,6 +12,7 @@ typedef struct s_player {
     char *id;
     char *socket_id;
     int energy;
+    int actions;
     int x;
     int y;
     int looking;
@@ -29,8 +30,8 @@ typedef struct s_energy {
 } t_energy;
 
 typedef struct s_game_info {
-    uint map_size;
-    uint game_status;
+    int map_size;
+    int game_status;
     pthread_mutex_t mutex_game;
     t_player *first_player;
     t_energy *first_energy;
@@ -44,6 +45,9 @@ typedef struct s_action {
 t_game_info *new_game_info();
 t_player *new_player(char *socket_id, char *identity, t_game_info *game_info);
 t_energy *new_energy(t_game_info *game_info);
+
+t_player *get_player_by_sock_id(t_game_info *game_info, char *sock_id);
+
 void destroy_game_info(t_game_info *game_info);
 void destroy_player(t_player * player, t_game_info * game_info);
 void destroy_energy(t_energy * energy, t_game_info * game_info);

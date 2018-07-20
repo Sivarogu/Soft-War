@@ -10,8 +10,8 @@ int main()
 	if (game_info == NULL)
 		return EXIT_FAILURE;
 	if (pthread_create(&thread_publish, NULL, start_publish, game_info)) {
-			printf("pthread_create error");
-			return EXIT_FAILURE;
+		printf("pthread_create error");
+		return EXIT_FAILURE;
 	}
 	if (pthread_create(&thread_router, NULL, start_router, game_info)) {
 		printf("pthread_create error");
