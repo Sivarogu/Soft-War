@@ -1,0 +1,18 @@
+export const getSignals = (send: (signal: string, ...parameters: any[]) => Promise<{}>) => ({
+  identify: (id: number) => send('identify', id),
+  forward: () => send('forward'),
+  backward: () => send('backward'),
+  leftfwd: () => send('leftfwd'),
+  rightfwd: () => send('rightfwd'),
+  right: () => send('right'),
+  left: () => send('left'),
+  gather: () => send('gather'),
+  watch: () => send('watch'),
+  looking: () => send('looking'),
+  attack: () => send('attack'),
+  selfid: () => send('selfid'),
+  selfstats: () => send('selfstats'),
+  inspect: (id: number) => send('inspect', id),
+  next: () => send('next'),
+  jump: () => send('jump'),
+})
