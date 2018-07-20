@@ -24,7 +24,7 @@ t_player *new_player(char *socket_id, char *identity, t_game_info *game_info)
     new_player->socket_id = socket_id;
     new_player->id = identity;
     new_player->energy = 50;
-    new_player->actions = 1;
+    new_player->actions = 2;
     new_player->stunned = 0;
     new_player->next = NULL;
     new_player->prev = NULL;
@@ -41,6 +41,7 @@ t_energy *new_energy(t_game_info *game_info)
     t_energy *new_energy;
 
     new_energy = malloc(sizeof(t_energy));
+    new_energy->value = 5 + rand() % (15 - 5 + 1);
     new_energy->next = NULL;
     new_energy->prev = NULL;
     if (game_info->first_energy != NULL)
