@@ -71,6 +71,28 @@ t_player *get_player_by_sock_id(t_game_info *game_info, char *sock_id)
     return NULL;
 }
 
+t_player *get_player_by_id(t_game_info *game_info, char *id)
+{
+    t_player *player = game_info->first_player;
+    while (player != NULL) {
+        if (strcmp(player->id, id) == 0)
+            return player;
+        player = player->next;
+    }
+    return NULL;
+}
+
+char *get_player_id_by_pos(t_game_info *game_info, int x, int y)
+{
+    t_player *player = game_info->first_player;
+    while (player != NULL) {
+        if (player->x == x && player->y == y)
+            return player->id;
+        player = player->next;
+    }
+    return NULL;
+}
+
 void destroy_game_info(t_game_info *game_info)
 {
     while (game_info->first_player != NULL) {

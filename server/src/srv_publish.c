@@ -13,19 +13,20 @@ void *start_publish(void *srv_game_info) {
     if (zstr_send(publish, message) != 0)
         printf("Error sending pub message : %s", message);
     pthread_mutex_unlock(&game_info->mutex_game);
+    zclock_sleep(5000);
     while (!zsys_interrupted && game_info->game_status != ENDED)
     {
-        zclock_sleep(5000);
         pthread_mutex_lock(&game_info->mutex_game);
         new_game_cycle(game_info);
         handle_dead_players(game_info, publish);
-        sprintf(message, "# Game status : %d. Message : Tout fonctionne", game_info->game_status);
+        sprintf(message, "Cycle notif. Player %s pos : x = %d, y = %d", game_info->first_player->id, game_info->first_player->x, game_info->first_player->y);
         pthread_mutex_unlock(&game_info->mutex_game);
         if (zstr_send(publish, message) != 0) {
             printf("Error sending pub message : %s", message);
             break;
         }
         printf("Message envoyé : %s\n", message);
+        zclock_sleep(5000);
     }
     if (game_info->first_player) {
         sprintf(message, "{\"notification_type\":%d,\"data\":null}", CLIENT_WIN);
