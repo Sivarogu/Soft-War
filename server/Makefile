@@ -20,6 +20,7 @@ SOURCE_SUB_DIRS		=
 SOURCE_INCLUDES		=	main.c \
 						srv_router.c \
 						srv_publish.c \
+						json_encoder.c \
 						command_hub.c \
 						commands.c \
 						game_info.c \
@@ -41,7 +42,8 @@ COMPILER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -Wno-missing-field-initialize
 LINKER_NAME			=	gcc
 LINKER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -pedantic -lm -g
 LINKER_LIBS			=	-lczmq \
-						-lzmq
+						-lzmq \
+						-ljansson
 
 # shorthands
 _MAKE				=	make
