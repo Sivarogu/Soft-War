@@ -1,0 +1,12 @@
+{
+  "name": "@wawolf/easy-event",
+  "version": "3.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pierre Tassel <kyasaki@outlook.fr>",
+  "license": "UNLICENSED",
+  "typings": "dist/index.d.ts"
+}
