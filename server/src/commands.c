@@ -281,7 +281,6 @@ void action_watch(t_game_info *game_info, zsock_t *router, t_command *command)
         && !current_player->stunned) {
         get_player_vision(*current_player, game_info, vision);
         vision_concat = concat_vision_string(vision);
-        sprintf(vision_concat, "[\"%s\",\"%s\",\"%s\",\"%s\"]", vision[0], vision[1], vision[2], vision[3]);
         send_response(router, command->identity, "ok", vision_concat);
         free(vision_concat);
     } else {

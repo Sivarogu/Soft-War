@@ -7,11 +7,13 @@ void *start_router(void *srv_game_info)
     t_game_info *game_info = (t_game_info *)(srv_game_info);
     zsock_t *router = zsock_new(ZMQ_ROUTER);
     zsock_bind(router, "tcp://*:4242");
+    zsock_set_rcvtimeo(router, 500);
     while (!zsys_interrupted && get_nb_player(game_info) < 4)
     // while (!zsys_interrupted && get_nb_player(game_info) < 1)
     {
         message = cmd_recv(router);
-        handle_lobby_cmd(game_info, router, message);
+        if (message != NULL)
+            handle_lobby_cmd(game_info, router, message);
     }
     pthread_mutex_lock(&game_info->mutex_game);
     game_info->game_status = ACTIVE;
@@ -23,9 +25,12 @@ void *start_router(void *srv_game_info)
         && game_info->first_player->next)
     {
         message = cmd_recv(router);
-        handle_game_cmd(game_info, router, message);
+        if (message != NULL)
+            handle_game_cmd(game_info, router, message);
     }
+    pthread_mutex_lock(&game_info->mutex_game);
     game_info->game_status = ENDED;
+    pthread_mutex_unlock(&game_info->mutex_game);
     zsock_destroy(&router);
     pthread_exit(NULL);
 }
@@ -40,6 +45,8 @@ t_command *cmd_recv(zsock_t *router)
     t_command *command;
 
     rcv_data = zmsg_recv(router);
+    if (rcv_data == NULL)
+        return NULL;
     command = malloc(sizeof(t_command));
     command->identity = zmsg_pop(rcv_data);
     empty = zmsg_pop(rcv_data);
