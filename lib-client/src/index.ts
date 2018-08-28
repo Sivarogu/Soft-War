@@ -1,6 +1,6 @@
 import {default as socketio} from 'socket.io-client'
 import {EasyEvent} from '@wawolf/easy-event'
-import {BridgeEventPublication, BridgeEventSubscribedPublisher} from 'zmq-websocket-bridge'
+import { BridgeClient } from './bridge';
 
 export type Notification = CycleNotification
 
@@ -50,22 +50,27 @@ export interface EnergyCell {
 	value: number
 }
 
+export interface NetworkInfo {
+	host: string
+	port: number
+}
+
 export class SoftwarAPI {
-	private _socket: SocketIOClient.Socket
-	public onConnect = new EasyEvent<undefined>()
-	public onDisconnect = new EasyEvent<undefined>()
+	private _bridge: BridgeClient
+	private _publisherUrl: string|undefined
+	private _routerUrl: string|undefined
+
+	public onConnect = new EasyEvent<void>()
+	public onDisconnect = new EasyEvent<void>()
 	public onNotification = new EasyEvent<Notification>()
 	public onCycle = new EasyEvent<GameInfo>()
 
-	public constructor(url?: string, autoConnect: boolean = false) {
-		if (url)
-			this._socket = socketio.connect(url, {autoConnect})
-		else
-			this._socket = socketio.connect({autoConnect})
+	public constructor(socketUrl?: string, autoConnect: boolean = false) {
+		this._bridge = new BridgeClient(socketUrl, autoConnect)
 
-		this._socket.on('connect', () => console.log('socket connected') || this.onConnect.trigger(undefined))
-		this._socket.on('disconnect', () => this.onDisconnect.trigger(undefined))
-		this._socket.on('notification', ({notification, data: gameInfo}: BridgeEventPublication<Notification>) => {
+		this._bridge.onConnect.add(() => this.onConnect.trigger(undefined))
+		this._bridge.onDisconnect.add(() => this.onDisconnect.trigger(undefined))
+		this._bridge.onNotification.add(({content: notification}) => {
 			this.onNotification.trigger(notification)
 			switch (notification.notification_type) {
 				case NotificationType.cycle_info:
@@ -76,34 +81,47 @@ export class SoftwarAPI {
 	}
 
 	public connect() {
-		this._socket.connect()
+		this._bridge.connect()
 	}
 
 	public get socket() {
-		return this._socket
+		return this._bridge.socket
 	}
 
-	public joinGameServer = async (network: {host: string, port: number}) => {
-		this._socket.emit('listen-gameserver', network)
-		return await new Promise((resolve, reject) => {
-			this._socket.once('listening-gameserver', ({url, success}: BridgeEventSubscribedPublisher) => {
-				if (success)
-					return resolve(url)
-				reject('connexion failed')
-			})
-		})
+	public subscribePublisher = async (networkInfo: NetworkInfo) => {
+		if (this._publisherUrl)
+			await this._bridge.publisherUnsubscribe(this._publisherUrl)
+
+		const publisherUrl = SoftwarAPI.gameServerUrl(networkInfo)
+		await this._bridge.publisherSubscribe(publisherUrl)
+		this._publisherUrl= publisherUrl
+	}
+
+	public subscribeRouter = async (networkInfo: NetworkInfo) => {
+		if (this._routerUrl)
+			await this._bridge.routerUnsubscribe(this._routerUrl)
+
+		const routerUrl = SoftwarAPI.gameServerUrl(networkInfo)
+		await this._bridge.routerSubscribe(routerUrl)
+		this._routerUrl= routerUrl
 	}
 
 	public async sendCommand<TRet>(name: string, data: {}) {
-		this._socket.emit('request', {name, data})
-		return await new Promise((resolve, reject) => {
+		/*this._socket.emit('request', {name, data})
+		return await new Promise((resolve) => {
 			this._socket.once('response', responseStatus => {
 				resolve(responseStatus)
 			})
-		})
+		})*/
 	}
 
-	public identify() {
+	public async identify() {
+		if (!this._routerUrl)
+			throw Error('not subscribed to a router')
+		await this._bridge.publisherIdentitySet(this._routerUrl, 'foo')
+	}
 
+	public static gameServerUrl({host, port}: NetworkInfo) {
+		return `tcp://${host}:${port}`
 	}
 }

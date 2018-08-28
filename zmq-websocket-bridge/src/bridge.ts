@@ -20,9 +20,26 @@ export interface BridgeEventNotification<TContent> {
 	content: TContent
 }
 
-export interface BridgeEventSubscribed {
+export interface BridgeOperation {
+	operationId: number | string
 	url: string
-	success: boolean
+}
+
+export type BridgeEventOperation<TData> =
+	BridgeEventOperationError | BridgeEventOperationSuccess<TData>
+
+export interface BridgeEventOperationSuccess<TData> {
+	operationId?: number | string
+	url: string
+	success: true
+	data: TData
+}
+
+export interface BridgeEventOperationError {
+	operationId: number | string
+	url: string
+	success: false
+	error: string
 }
 
 const logEventDebug = (eventName: string, ...message: Array<{}>) =>
@@ -41,71 +58,85 @@ export class Bridge {
 				logEventDebug('client disconnected', client.id)
 				this._unsubscribeAll(client)
 			})
-			client.on('publisher-subscribe', ({url}: {url: string}) => this._subscribePublisher(url, client))
-			client.on('publisher-unsubscribe', ({url}: {url: string}) => this._unsubscribePublisher(url, client))
-			client.on('router-subscribe', ({url}: {url: string}) => this._subscribeRouter(url, client))
-			client.on('router-unsubscribe', ({url}: {url: string}) => this._unsubscribeRouter(url, client))
-			client.on('router-identity-set', ({url}: {url: string}) => this._identifyRouter(url, client))
+
+			this._createRoute(client, 'publisher-subscribe', ({url}) => this._subscribePublisher(url, client))
+			this._createRoute(client, 'publisher-unsubscribe', ({url}) => this._unsubscribePublisher(url, client))
+			this._createRoute(client, 'router-subscribe', ({url}) => this._subscribeRouter(url, client))
+			this._createRoute(client, 'router-unsubscribe', ({url}) => this._unsubscribeRouter(url, client))
+			this._createRoute<BridgeOperation & {identity: string}>(
+				client, 'router-identity-set', ({url, identity}) => this._identifyRouter(url, client, identity))
 		})
 	}
 
 	private _unsubscribeAll(client: SocketIO.Socket) {
+		console.log('unsubscribing all', this._publishers.filter(publisher => ~publisher.clients.indexOf(client)))
 		this._publishers.filter(publisher => ~publisher.clients.indexOf(client))
 			.forEach(publisher => this._publisherDropClient(publisher, client))
 		this._routers.filter(router => router.client === client)
 			.forEach(router => this._dropRouterBridge(router))
 	}
 
-	private _subscribePublisher(url: string, client: SocketIO.Socket) {
-		const confirm = (success: boolean) => this._confirmSubscription('publisher-subscribe', client, url, success)
-		let publisher = this._publishers.find(publisher => publisher.url === url)
-		if (publisher === undefined) {
+	private _createRoute<TData extends BridgeOperation, TRet = void>(client: SocketIO.Socket, eventName: string, handler: (data: TData) => Promise<TRet>) {
+		client.on(eventName, async (data: TData) => {
 			try {
-				this._publishers.push(publisher = this._createPublishBridge(url, client))
+				const confirmation: BridgeEventOperationSuccess<TRet> = {
+					url: data.url,
+					operationId: data.operationId,
+					success: true,
+					data: await handler(data)
+				}
+				client.emit(eventName, confirmation)
 			} catch (e) {
-				console.warn('could not connect', url, ':', e)
-				return confirm(false)
+				const confirmation: BridgeEventOperationError = {
+					url: data.url,
+					operationId: data.operationId,
+					success: false,
+					error: String(e)
+				}
+				client.emit(eventName, confirmation)
 			}
-		}
-		confirm(true)
+		})
 	}
 
-	private _unsubscribePublisher(url: string, client: SocketIO.Socket) {
-		const confirm = (success: boolean) => this._confirmSubscription('publisher-unsubscribe', client, url, success)
+	private async _subscribePublisher(url: string, client: SocketIO.Socket) {
+		let publisher = this._publishers.find(publisher => publisher.url === url)
+		if (publisher) {
+			if (~publisher.clients.indexOf(client))
+				throw Error('already subscribed')
+			publisher.clients.push(client)
+		}
+		else
+			this._createPublishBridge(url, client)
+	}
+
+	private async _unsubscribePublisher(url: string, client: SocketIO.Socket) {
 		let publisher = this._publishers.find(publisher => publisher.url === url)
 		if (!publisher)
-			return confirm(false)
+			throw Error('unknown publisher: ' + url)
 		if (!~publisher.clients.indexOf(client))
-			return confirm(false)
-
+			throw Error('not subscribed: ' + url)
 		this._publisherDropClient(publisher, client)
 	}
 
 	private async _subscribeRouter(url: string, client: SocketIO.Socket) {
-		const confirm = (success: boolean) => this._confirmSubscription('router-subscribe', client, url, success)
 		let router = this._routers.find(router => router.url === url && router.client === client)
 		if (router)
-			return confirm(false)
-		router = await this._createRouterBridge(url, client)
-		confirm(true)
+			throw Error('already subscribed: ' + url)
+		await this._createRouterBridge(url, client)
 	}
 
-	private _unsubscribeRouter(url: string, client: SocketIO.Socket) {
-		const confirm = (success: boolean) => this._confirmSubscription('router-unsubscribe', client, url, success)
+	private async _unsubscribeRouter(url: string, client: SocketIO.Socket) {
 		let router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
-			return confirm(false)
+			throw Error('not subscribed: ' + url)
 		this._dropRouterBridge(router)
-		confirm(true)
 	}
 
-	private _identifyRouter(url: string, client: SocketIO.Socket) {
-		const confirm = (success: boolean) => this._confirmSubscription('router-identity-set', client, url, success)
+	private async _identifyRouter(url: string, client: SocketIO.Socket, identity: string) {
 		let router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
-			return confirm(false)
-		router.socket
-		confirm(true)
+			throw Error('not subscribed: ' + url)
+		router.socket.identity = identity
 	}
 
 	private _publisherDropClient(publisher: BridgePublisher, client: SocketIO.Socket) {
@@ -115,11 +146,6 @@ export class Bridge {
 			publisher.socket.close()
 			logEventDebug('destroyed empty lobby published bridge', publisher.url)
 		}
-	}
-
-	private _confirmSubscription(event: string, socket: SocketIO.Socket, url: string, success: boolean) {
-		const message: BridgeEventSubscribed = {url, success}
-		socket.emit(event, message)
 	}
 
 	private _createPublishBridge(url: string, firstClient: SocketIO.Socket): BridgePublisher {
@@ -137,12 +163,12 @@ export class Bridge {
 		this._publishers.push(publisher)
 
 		socket.on('message', message => {
-			const frame: BridgeEventNotification<{}> = {
+			const notification: BridgeEventNotification<{}> = {
 				url,
 				content: JSON.parse(message.toString())
 			}
 			for (const client of publisher.clients)
-				client.emit('notification', frame)
+				client.emit('notification', notification)
 		})
 
 		return publisher
@@ -154,7 +180,7 @@ export class Bridge {
 		const socket = zmq.socket('req')
 		await new Promise((resolve) => {
 			socket.connect(url)
-			socket.on('connect', () => resolve())
+			resolve()
 		})
 
 		const router: BridgeRouter = {

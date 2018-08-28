@@ -1,8 +1,8 @@
 import {default as http} from 'http'
 import {Server} from './server'
-import {Bridge, BridgeEventPublication, BridgeEventSubscribedPublisher} from './bridge'
+import {Bridge, BridgeEventNotification, BridgeEventOperation, BridgeEventOperationError, BridgeEventOperationSuccess} from './bridge'
 
-export {BridgeEventPublication, BridgeEventSubscribedPublisher}
+export {BridgeEventNotification, BridgeEventOperation, BridgeEventOperationError, BridgeEventOperationSuccess}
 
 const appServer = new Server()
 const httpServer = new http.Server(appServer.app)
