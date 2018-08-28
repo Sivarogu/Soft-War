@@ -69,7 +69,6 @@ export class Bridge {
 	}
 
 	private _unsubscribeAll(client: SocketIO.Socket) {
-		console.log('unsubscribing all', this._publishers.filter(publisher => ~publisher.clients.indexOf(client)))
 		this._publishers.filter(publisher => ~publisher.clients.indexOf(client))
 			.forEach(publisher => this._publisherDropClient(publisher, client))
 		this._routers.filter(router => router.client === client)
@@ -135,16 +134,16 @@ export class Bridge {
 	private async _identifyRouter(url: string, client: SocketIO.Socket, identity: string) {
 		let router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
-			throw Error('not subscribed: ' + url)
+			throw Error('unknown router: ' + url)
 		router.socket.identity = identity
 	}
 
 	private _publisherDropClient(publisher: BridgePublisher, client: SocketIO.Socket) {
 		publisher.clients.splice(publisher.clients.indexOf(client))
-		if (publisher.clients.length < 0) {
+		if (!publisher.clients.length) {
+			logEventDebug('destroying publish bridge', publisher.url)
 			this._publishers.splice(this._publishers.indexOf(publisher))
 			publisher.socket.close()
-			logEventDebug('destroyed empty lobby published bridge', publisher.url)
 		}
 	}
 
@@ -188,6 +187,7 @@ export class Bridge {
 			socket,
 			client
 		}
+		this._routers.push(router)
 		return router
 	}
 
