@@ -48,7 +48,7 @@ int global_config_of_smap(t_smap_entry *parsed_config, t_global_config *config) 
 int global_config_of_file(const char *path, t_global_config *config) {
 	int config_fd;
 	char buffer[READ_FILE_SIZE];
-	size_t read_length;
+	int read_length;
 	t_smap_entry *parsed_config;
 
 	BIND_MNEG((config_fd = open(path, O_RDONLY)), "failed opening config file");

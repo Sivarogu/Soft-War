@@ -42,13 +42,14 @@ BUILD_OBJECTS		=	$(patsubst $(SOURCE_DIR)/%.c,$(BUILD_DIR)/%.o,$(SOURCE_FILES))
 
 # compiler
 COMPILER_NAME		=	gcc
-COMPILER_FLAGS		=	-Wfatal-errors -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-parameter -pedantic -std=gnu99 -g -c
+COMPILER_FLAGS		=	-Wfatal-errors -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Wno-unused-parameter -pedantic -std=gnu99 -D_GNU_SOURCE -g -c
 
 LINKER_NAME			=	gcc
 LINKER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -pedantic -lm -g
 LINKER_LIBS			=	-lczmq \
 						-lzmq \
-						-ljansson
+						-ljansson \
+						-pthread
 
 # shorthands
 _MAKE				=	make
