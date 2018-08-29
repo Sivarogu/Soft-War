@@ -5,9 +5,9 @@ choices=(
 	"build environment (do this first)"
 	"build and run server [watch]"
 	"build and run external/easy-event [watch]"
-	"build lib-client [watch]"
 	"build bridge [watch]"
 	"start bridge [watch]"
+	"build lib-client [watch]"
 	"build visualizer [watch]"
 )
 
@@ -15,9 +15,9 @@ commands=(
 	"make -C dev build-env"
 	"make -C dev run-server"
 	"make -C dev run-easy-event"
-	"make -C dev run-lib-client"
 	"make -C dev run-bridge-build"
 	"make -C dev run-bridge-start"
+	"make -C dev run-lib-client"
 	"make -C dev run-visualizer"
 )
 
