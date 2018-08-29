@@ -18,7 +18,7 @@ $(() => {
 
 	api.onNotification.add(notification => {
 		const date = (new Date()).toString()
-		const datestr = date.split(' GMT')[0]
+		atestr = date.split(' GMT')[0]
 		console.log(`[${datestr}] notification:`, notification)
 		$canvas.text('').append(
 			$('<span>').text(`Last notification - last updated ${datestr}:`),

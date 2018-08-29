@@ -2,6 +2,7 @@
 set -e pipefail
 
 choices=(
+	"build environment (do this first)"
 	"build and run server [watch]"
 #	"build and run external"
 #	"run zmq-socket-bridge [watch]"
@@ -11,7 +12,8 @@ choices=(
 )
 
 commands=(
-	"make -C dev build-server && make -C dev run-server"
+	"make -C dev build-env"
+	"make -C dev run-server"
 #	"make -C dev sub-client"
 #	"nodemon zmq-socket-bridge"
 #	"tsc --watch -p zmq-socket-bridge"

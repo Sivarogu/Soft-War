@@ -1,7 +1,0 @@
-dev:
-	- make -C server watch
-	- make -C dev sub-client
-	- nodemon zmq-socket-bridge
-	- tsc --watch -p zmq-socket-bridge
-	- tsc --watch -p lib-client
-	- cd visualizer && webpack --watch
