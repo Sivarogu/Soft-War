@@ -4,21 +4,21 @@ set -e pipefail
 choices=(
 	"build environment (do this first)"
 	"build and run server [watch]"
-#	"build and run external"
-#	"run zmq-socket-bridge [watch]"
-#	"build zmq-socket-bridge [watch]"
-#	"build lib-client [watch]"
-#	"build visualizer [watch]"
+	"build and run external/easy-event [watch]"
+	"build lib-client [watch]"
+	"build bridge [watch]"
+	"start bridge [watch]"
+	"build visualizer [watch]"
 )
 
 commands=(
 	"make -C dev build-env"
 	"make -C dev run-server"
-#	"make -C dev sub-client"
-#	"nodemon zmq-socket-bridge"
-#	"tsc --watch -p zmq-socket-bridge"
-#	"tsc --watch -p lib-client"
-#	"cd visualizer && webpack --watch"
+	"make -C dev run-easy-event"
+	"make -C dev run-lib-client"
+	"make -C dev run-bridge-build"
+	"make -C dev run-bridge-start"
+	"make -C dev run-visualizer"
 )
 
 ask_again=1

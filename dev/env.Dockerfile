@@ -32,4 +32,6 @@ run make install
 workdir /home/ljansson
 run rm jansson-2.11.tar.gz
 
+run npm i -g webpack-cli
+
 workdir /app
