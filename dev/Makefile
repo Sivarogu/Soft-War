@@ -61,4 +61,4 @@ run-visualizer:
 		--mount type=bind,source="$(root_path)",target=/app \
 		softwar-dev-env \
 		/bin/bash \
-		-c "cd visualizer && webpack --watch"
+		-c "cd visualizer && npm i && webpack --watch"
