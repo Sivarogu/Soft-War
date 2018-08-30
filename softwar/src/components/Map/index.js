@@ -60,9 +60,22 @@ const EmptyCell = styled.div`
   overflow: visible;
   position: relative;
   background-color: gray;
-  border: 1px dotted lightgrey;
+  border: 1px solid rgba(37, 124, 48, 0.6);
+  ${'' /* background-image: url('./img/grass.png'); */}
+  ${'' /* background-size: 100px; */}
   &::before {
-
+    content: " ";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: url('./img/grass.png');
+    background-size: 100px;
+    opacity: 1;
+    filter: grayscale(40%) contrast(90%);;
   };
   flex: ${({ size, rowGap }) => `0 1 calc(${size}*100% - ${size % 1 ? rowGap / 2 : 0}px)`};
   flex-shrink: 0;

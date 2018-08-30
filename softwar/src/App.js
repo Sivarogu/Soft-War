@@ -24,6 +24,7 @@ const Content = styled.div`
 const Container = styled.div`
   flex: 1;
   width: 100%;
+  max-width: 500px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -43,6 +44,7 @@ const Header = styled.div`
 
 const H1 = styled.div`
   margin: 20px;
+  text-align: center;
   font-family: 'Light Pixel';
   font-size: 8vw;
   width: 40%;
