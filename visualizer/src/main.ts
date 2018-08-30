@@ -66,9 +66,10 @@ $(() => {
 
 		let cycleInfo: GameInfo
 		while (cycleInfo = await player.nextCycle()) {
-			await bravely(player.turnRight())
-			await bravely(player.attack())
-			await bravely(player.jumpForward())
+			console.log(identity, 'starting cycle')
+			await bravely(player.turnRight(), undefined)
+			await bravely(player.attack(), undefined)
+			await bravely(player.jumpForward(), undefined)
 		}
 	}
 
