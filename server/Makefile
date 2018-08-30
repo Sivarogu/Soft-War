@@ -49,8 +49,7 @@ LINKER_NAME			=	gcc
 LINKER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -pedantic -lm -g
 LINKER_LIBS			=	-lczmq \
 						-lzmq \
-						-ljansson \
-						-pthread
+						-ljansson
 
 # shorthands
 _MAKE				=	make
