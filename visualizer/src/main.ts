@@ -1,6 +1,9 @@
 import './main.scss'
 import {default as $} from 'jquery'
-import {SoftwarAPI, NotificationType} from 'softwar-lib-client'
+import {SoftwarAPI, NotificationType, GameInfo} from 'softwar-lib-client'
+
+const routerUrl = {host: 'localhost', port: 4242}
+const publisherUrl = {host: 'localhost', port: 4243}
 
 $(() => {
 	const $canvas = $('#game_canvas')
@@ -11,8 +14,8 @@ $(() => {
 	const api = new SoftwarAPI()
 	api.onConnect.add(async () => {
 		$canvas.text('Socket.io connected')
-		await api.subscribePublisher({host: 'localhost', port: 4243})
-		await api.subscribeRouter({host: 'localhost', port: 4242})
+		await api.subscribePublisher(publisherUrl)
+		await api.subscribeRouter(routerUrl)
 		console.log('succesfully joined game server')
 		$networkStatus.html('Connected with game server <b>tcp://localhost:4243</b>')
 	})
@@ -42,8 +45,21 @@ $(() => {
 
 	api.connect()
 
-	$('#game_add_ai').click(() => {
-		console.warn('not available')
+	const sleep = (timeout: number) => new Promise((resolve) => setTimeout(resolve, timeout))
+	const nextCycle = (api: SoftwarAPI) => new Promise<GameInfo>((resolve) => api.onCycle.add(resolve, true))
+
+	//const players = []
+	$('#game_add_ai').click(async () => {
+		const game = new SoftwarAPI()
+		game.connect()
+		await game.subscribePublisher(publisherUrl)
+		await game.subscribeRouter(routerUrl)
+		const identity = await game.identify()
+
+		let cycleInfo: GameInfo
+		while (cycleInfo = await nextCycle(game)) {
+			console.log(identity, 'got cycle info:', cycleInfo)
+		}
 	})
 
 	; (window as any).api = api
