@@ -65,38 +65,45 @@ $(() => {
 		const identity = await player.identify()
 
 		let cycleInfo: GameInfo
-		cycleInfo = await player.nextCycle();
-		const curr_player = cycleInfo.players.find(pl => pl.name === identity);
-		if (!curr_player)
-			return;
 		while (cycleInfo = await player.nextCycle()) {
+			console.log(identity, ' starting cycle')
+			let curr_player = cycleInfo.players.find(pl => pl.name === identity);
+			if (!curr_player)
+				continue;
 			let action_pts: number = 2;
 			let energy: EnergyCell|undefined
 			if (cycleInfo.energy_cells.length > 0) {
 				energy = getClosestEnergy(curr_player, cycleInfo);
 				if (energy.x === curr_player.x && energy.y === curr_player.y && curr_player.energy < 100 - energy.value) {
-					await bravely(player.gatherEnergy())
+					await bravely(player.gatherEnergy(), null)
 					action_pts -= 2;
 				}
 			}
 			let vision = await player.scanForward()
 			vision.forEach(async square => {
-				if (square != "energy" && square != "empty" && curr_player.energy > 20 && action_pts > 1) {
-					await bravely(player.attack())
+				if (square != "energy" && square != "empty" && curr_player && curr_player.energy > 20 && action_pts > 1) {
+					await bravely(player.attack(), null)
 					action_pts--;
 				}
 			});
 			while(energy && action_pts > 0) {
 				let action = goTo(curr_player, energy);
 				switch (action) {
-					case "forward": await bravely(player.moveForward()); break;
-					case "backward": await bravely(player.moveBackward()); break;
-					case "leftfwd": await bravely(player.moveLeft()); break;
-					case "right": await bravely(player.turnRight()); break;
+					case "forward": await bravely(player.moveForward(), null); break;
+					case "backward": await bravely(player.moveBackward(), null); break;
+					case "leftfwd": await bravely(player.moveLeft(), null); break;
+					case "right": await bravely(player.turnRight(), null); break;
 					default: break;
 				}
 			}
 		}
+		// let cycleInfo: GameInfo
+		// while (cycleInfo = await player.nextCycle()) {
+		// 	console.log(identity, ' starting cycle')
+		// 	await bravely(player.turnRight(), null)
+		// 	await bravely(player.attack(), null)
+		// 	await bravely(player.jumpForward(), null)
+		// }
 	}
 
 	const goTo = (player: Player, energy: EnergyCell):string => {
