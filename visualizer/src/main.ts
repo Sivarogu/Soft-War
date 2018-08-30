@@ -12,6 +12,7 @@ $(() => {
 	api.onConnect.add(async () => {
 		$canvas.text('Socket.io connected')
 		await api.subscribePublisher({host: 'localhost', port: 4243})
+		await api.subscribeRouter({host: 'localhost', port: 4242})
 		console.log('succesfully joined game server')
 		$networkStatus.html('Connected with game server <b>tcp://localhost:4243</b>')
 	})

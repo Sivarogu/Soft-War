@@ -12,6 +12,7 @@ const char *log_level_name(t_log_level level) {
 		case LOG_LEVEL_WARN: return "WARN";
 		case LOG_LEVEL_ERROR: return "ERROR";
 	}
+	return NULL;
 }
 
 int log_log(t_log_level level, const char *str) {

@@ -5,6 +5,10 @@
 #include "network.h"
 #include "command.h"
 
+t_game game_info;
+pthread_mutex_t game_info_mutex;
+pthread_cond_t game_info_mutex_start_cond;
+
 int game_lobby() {
 	zsock_t *router;
 	t_command *message;
