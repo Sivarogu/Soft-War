@@ -47,9 +47,9 @@ $(() => {
 
 	const sleep = (timeout: number) => new Promise((resolve) => setTimeout(resolve, timeout))
 	const nextCycle = (api: SoftwarAPI) => new Promise<GameInfo>((resolve) => api.onCycle.add(resolve, true))
-	const bravely = async <T>(p: Promise<T>) => {
-		try {await p}
-		catch (e) {}
+	const bravely = async <TRet>(p: Promise<TRet>, defaultValue: TRet) => {
+		try {return await p}
+		catch (e) {return defaultValue}
 	}
 
 	const startIA = async () => {
