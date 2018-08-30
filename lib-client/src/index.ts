@@ -29,10 +29,12 @@ export interface GameFinishedNotification {
 
 export interface ClientDeadNotification {
 	notification_type: NotificationType.client_dead
+	target: string
 }
 
 export interface ClientWinNotification {
 	notification_type: NotificationType.client_win
+	target: string
 }
 
 export enum GameStatus {
@@ -83,21 +85,17 @@ export class SoftwarAPI {
 	public onDisconnect = new EasyEvent<void>()
 	public onNotification = new EasyEvent<Notification>()
 	public onCycle = new EasyEvent<GameInfo>()
+	public onGameStarted = new EasyEvent<void>()
+	public onGameFinished = new EasyEvent<void>()
+	public onClientDead = new EasyEvent<{target: string}>()
+	public onClientWin = new EasyEvent<{target: string}>()
 
 	public constructor(socketUrl?: string, autoConnect: boolean = false) {
 		this._bridge = new BridgeClient(socketUrl, autoConnect)
 
 		this._bridge.onConnect.add(() => this.onConnect.trigger(undefined))
 		this._bridge.onDisconnect.add(() => this.onDisconnect.trigger(undefined))
-		this._bridge.onNotification.add(({content}) => {
-			const notification = content as Notification
-			this.onNotification.trigger(notification)
-			switch (notification.notification_type) {
-				case NotificationType.cycle_info:
-					this.onCycle.trigger(notification.data)
-					break
-			}
-		})
+		this._bridge.onNotification.add(({frame}) => this._onNotification(frame))
 	}
 
 	public connect() {
@@ -236,5 +234,34 @@ export class SoftwarAPI {
 
 	public static gameServerUrl({host, port}: NetworkInfo) {
 		return `tcp://${host}:${port}`
+	}
+
+	private _onNotification(frame: string) {
+		const matches = frame.match(/(?:([^|]+)\|)?(.*)/)
+		if (!matches)
+			return console.warn('Invalid notification frame:', frame)
+		const [, topic, data] = matches
+
+		const notification = JSON.parse(data) as Notification
+		if (notification.notification_type === NotificationType.client_dead || notification.notification_type === NotificationType.client_win)
+			notification.target = topic
+		this.onNotification.trigger(notification)
+		switch (notification.notification_type) {
+			case NotificationType.cycle_info:
+				this.onCycle.trigger(notification.data)
+				break
+			case NotificationType.game_started:
+				this.onGameStarted.trigger(undefined)
+				break
+			case NotificationType.game_finished:
+				this.onGameFinished.trigger(undefined)
+				break
+			case NotificationType.client_dead:
+				this.onClientDead.trigger({target: notification.target})
+				break
+			case NotificationType.client_win:
+				this.onClientWin.trigger({target: notification.target})
+				break
+		}
 	}
 }

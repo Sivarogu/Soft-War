@@ -15,9 +15,9 @@ export interface BridgeRouter {
 	queue: Array<(frame: string) => void>
 }
 
-export interface BridgeEventNotification<TContent> {
+export interface BridgeEventNotification {
 	url: string
-	content: TContent
+	frame: string
 }
 
 export interface BridgeOperation {
@@ -175,9 +175,9 @@ export class Bridge {
 		this._publishers.push(publisher)
 
 		socket.on('message', message => {
-			const notification: BridgeEventNotification<{}> = {
+			const notification: BridgeEventNotification = {
 				url,
-				content: JSON.parse(message.toString())
+				frame: message.toString()
 			}
 			for (const client of publisher.clients)
 				client.emit('notification', notification)

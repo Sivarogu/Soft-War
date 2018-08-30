@@ -7,7 +7,7 @@ export class BridgeClient {
 	private _nextOperationId = 1
 	public onConnect = new EasyEvent<undefined>()
 	public onDisconnect = new EasyEvent<undefined>()
-	public onNotification = new EasyEvent<BridgeEventNotification<{}>>()
+	public onNotification = new EasyEvent<BridgeEventNotification>()
 	public onPublisherSubscribe = new EasyEvent<void>()
 	public onPublisherUnsubscribe = new EasyEvent<void>()
 	public onRouterSubscribe = new EasyEvent<void>()
@@ -22,7 +22,7 @@ export class BridgeClient {
 
 		this._socket.on('connect', () => this._onSocketConnect())
 		this._socket.on('disconnect', () => this._onSocketDisconnect())
-		this._socket.on('notification', (notif: BridgeEventNotification<{}>) => this._onNotification(notif))
+		this._socket.on('notification', (notif: BridgeEventNotification) => this._onNotification(notif))
 	}
 
 	public connect() {
@@ -95,7 +95,7 @@ export class BridgeClient {
 		this.onDisconnect.trigger(undefined)
 	}
 
-	private _onNotification(notification: BridgeEventNotification<{}>) {
+	private _onNotification(notification: BridgeEventNotification) {
 		this.onNotification.trigger(notification)
 	}
 }
