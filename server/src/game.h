@@ -7,7 +7,7 @@
 typedef enum {
 	GAME_STATUS_PENDING,
 	GAME_STATUS_STARTED,
-	GATE_STATUS_FINISHED
+	GAME_STATUS_FINISHED
 } t_game_status;
 
 typedef enum {
@@ -47,6 +47,7 @@ typedef struct {
 
 t_game game_info;
 pthread_mutex_t game_info_mutex;
+pthread_cond_t game_info_mutex_start_cond;
 
 int next_game_cycle();
 size_t get_nb_player();

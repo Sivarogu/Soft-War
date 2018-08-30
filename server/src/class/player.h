@@ -6,7 +6,7 @@
 typedef enum {
 	GAME_STATUS_PENDING,
 	GAME_STATUS_STARTED,
-	GATE_STATUS_FINISHED
+	GAME_STATUS_FINISHED
 } t_game_status;
 
 typedef enum {

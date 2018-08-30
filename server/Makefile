@@ -28,6 +28,7 @@ SOURCE_INCLUDES		=	main.c \
 						global_config.c \
 						log.c \
 						network.c \
+						thread_router.c \
 						thread_publish.c \
 						utils.c
 

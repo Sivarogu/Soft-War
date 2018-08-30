@@ -107,13 +107,12 @@ export class SoftwarAPI {
 		this._routerUrl= routerUrl
 	}
 
-	public async sendCommand<TRet>(name: string, data: {}) {
-		/*this._socket.emit('request', {name, data})
-		return await new Promise((resolve) => {
-			this._socket.once('response', responseStatus => {
-				resolve(responseStatus)
-			})
-		})*/
+	public async queryRouter<TRet>(actionName: string, data: string) {
+		if (!this._routerUrl)
+			throw Error('not subscribed to a router')
+
+		const frame = `${actionName}|${data}`
+		return await this._bridge.routerSendCommand(this._routerUrl, frame)
 	}
 
 	public async identify() {

@@ -59,6 +59,10 @@ export class BridgeClient {
 		await this._operate('publisher-subscribe', {url, identity}, () => {})
 	}
 
+	public async routerSendCommand(url: string, frame: string) {
+		await this._operate('router-command', {url, frame}, (ret) => ret)
+	}
+
 	private _genOperationId() {
 		const nextId = this._nextOperationId
 		this._nextOperationId++
@@ -98,6 +102,7 @@ export class BridgeClient {
 	}
 
 	private _onNotification(notification: BridgeEventNotification<{}>) {
+		console.log('got notif')
 		this.onNotification.trigger(notification)
 	}
 }

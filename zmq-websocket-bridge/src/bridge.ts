@@ -9,10 +9,11 @@ export interface BridgePublisher {
 	clients: Array<SocketIO.Socket>
 }
 
-export interface BridgeRouter {
+export interface BridgeRouter<TData> {
 	url: string
 	socket: zmq.Socket
 	client: SocketIO.Socket
+	queue: Array<(data: TData) => void>
 }
 
 export interface BridgeEventNotification<TContent> {
@@ -48,7 +49,8 @@ const logEventDebug = (eventName: string, ...message: Array<{}>) =>
 export class Bridge {
 	private _socketioServer: SocketIO.Server;
 	private _publishers: Array<BridgePublisher> = []
-	private _routers: Array<BridgeRouter> = []
+	private _routers: Array<BridgeRouter<{}>> = []
+	private _routerHandleQueue: Array<(data: {}) => void> = []
 
 	public constructor(httpServer: http.Server) {
 		this._socketioServer = socketio(httpServer)
@@ -65,6 +67,8 @@ export class Bridge {
 			this._createRoute(client, 'router-unsubscribe', ({url}) => this._unsubscribeRouter(url, client))
 			this._createRoute<BridgeOperation & {identity: string}>(
 				client, 'router-identity-set', ({url, identity}) => this._identifyRouter(url, client, identity))
+			this._createRoute<BridgeOperation & {frame: string}, {}>(
+				client, 'router-command', ({url, frame}) => this._handleRouterCommand(url, client, frame))
 		})
 	}
 
@@ -98,7 +102,7 @@ export class Bridge {
 	}
 
 	private async _subscribePublisher(url: string, client: SocketIO.Socket) {
-		let publisher = this._publishers.find(publisher => publisher.url === url)
+		const publisher = this._publishers.find(publisher => publisher.url === url)
 		if (publisher) {
 			if (~publisher.clients.indexOf(client))
 				throw Error('already subscribed')
@@ -109,7 +113,7 @@ export class Bridge {
 	}
 
 	private async _unsubscribePublisher(url: string, client: SocketIO.Socket) {
-		let publisher = this._publishers.find(publisher => publisher.url === url)
+		const publisher = this._publishers.find(publisher => publisher.url === url)
 		if (!publisher)
 			throw Error('unknown publisher: ' + url)
 		if (!~publisher.clients.indexOf(client))
@@ -118,24 +122,36 @@ export class Bridge {
 	}
 
 	private async _subscribeRouter(url: string, client: SocketIO.Socket) {
-		let router = this._routers.find(router => router.url === url && router.client === client)
+		const router = this._routers.find(router => router.url === url && router.client === client)
 		if (router)
 			throw Error('already subscribed: ' + url)
 		await this._createRouterBridge(url, client)
 	}
 
 	private async _unsubscribeRouter(url: string, client: SocketIO.Socket) {
-		let router = this._routers.find(router => router.url === url && router.client === client)
+		const router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
 			throw Error('not subscribed: ' + url)
 		this._dropRouterBridge(router)
 	}
 
 	private async _identifyRouter(url: string, client: SocketIO.Socket, identity: string) {
-		let router = this._routers.find(router => router.url === url && router.client === client)
+		const router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
 			throw Error('unknown router: ' + url)
 		router.socket.identity = identity
+	}
+
+	private async _handleRouterCommand<TData>(url: string, client: SocketIO.Socket, frame: string) {
+		const router = this._routers.find(router => router.url === url && router.client === client)
+		if (!router)
+			throw Error('unknown router: ' + url)
+		console.log('got router command:', frame)
+
+		return new Promise((resolve, reject) => {
+			router.socket.send(frame)
+			router.queue.push(resolve)
+		})
 	}
 
 	private _publisherDropClient(publisher: BridgePublisher, client: SocketIO.Socket) {
@@ -182,16 +198,20 @@ export class Bridge {
 			resolve()
 		})
 
-		const router: BridgeRouter = {
+		const router: BridgeRouter<{}> = {
 			url,
 			socket,
-			client
+			client,
+			queue: []
 		}
 		this._routers.push(router)
+
+		socket.on('message', message => router.queue.splice(1)[0](message))
+
 		return router
 	}
 
-	private _dropRouterBridge(router: BridgeRouter) {
+	private _dropRouterBridge(router: BridgeRouter<{}>) {
 		logEventDebug('destroying router bridge', router.client.id, router.url)
 		router.socket.close()
 	}

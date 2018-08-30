@@ -64,9 +64,9 @@ int publish(zsock_t *socket, t_notification_type type, json_t *data) {
 int publish_cycle(zsock_t *socket) {
 	json_t *cycle_json;
 
-	pthread_mutex_lock(&game_info_mutex);
+	// pthread_mutex_lock(&game_info_mutex);
 	BIND_MZERO(cycle_json = json_encode_cycle(), "could not JSON encode cycle");
-	pthread_mutex_unlock(&game_info_mutex);
+	// pthread_mutex_unlock(&game_info_mutex);
 
 	BIND_NEG(publish(socket, NOTIFICATION_TYPE_CYCLE_INFO, cycle_json));
 	free(cycle_json);
