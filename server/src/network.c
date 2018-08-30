@@ -47,28 +47,28 @@ static json_t *json_encode_cycle()
 	return cycle_json;
 }
 
-int publish(zsock_t *socket, t_notification_type type, json_t *data) {
+int publish(zsock_t *socket, t_notification_type type, json_t *data, char *channel) {
 	json_t *notification_json;
 	char *notification_str;
+	char *publish_message;
 
 	notification_json = json_object();
 	json_object_set_new(notification_json, "notification_type", json_integer(type));
 	json_object_set_new(notification_json, "data", data);
 	BIND_MZERO(notification_str = json_dumps(notification_json, JSON_COMPACT), "could not JSON encode cycle");
 	free(notification_json);
-	BIND_MTRUE(zstr_send(socket, notification_str), "could not send notification");
+	BIND_ZERO((publish_message = buildstr("%s|%s", channel, notification_str)));
 	free(notification_str);
+	BIND_MTRUE(zstr_send(socket, publish_message), "could not send notification");
+	free(publish_message);
 	return 0;
 }
 
 int publish_cycle(zsock_t *socket) {
 	json_t *cycle_json;
 
-	// pthread_mutex_lock(&game_info_mutex);
 	BIND_MZERO(cycle_json = json_encode_cycle(), "could not JSON encode cycle");
-	// pthread_mutex_unlock(&game_info_mutex);
-
-	BIND_NEG(publish(socket, NOTIFICATION_TYPE_CYCLE_INFO, cycle_json));
+	BIND_NEG(publish(socket, NOTIFICATION_TYPE_CYCLE_INFO, cycle_json, "Global"));
 	free(cycle_json);
 	return 0;
 }
