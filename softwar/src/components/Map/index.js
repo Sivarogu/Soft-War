@@ -26,7 +26,7 @@ const getPlayer = (player) => {
       display: block;
       content: " ";
       width: 100%;
-      height: 60px;
+      height: 70px;
       // top: 0;
       left: 0;
       bottom: 90%;

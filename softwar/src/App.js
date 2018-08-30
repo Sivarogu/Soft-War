@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
 import { SoftwarAPI, Direction, GameStatus, NotificationType } from 'softwar-lib-client';
 import Map from './components/Map';
 import styled from 'styled-components';
@@ -18,10 +16,9 @@ const Wrapper = styled.div`
 `;
 
 const Content = styled.div`
-  width: 400px;
-  height: 200px;
+  width: 250px;
+  height: 250px;
   overflow: visible;
-  ${'' /* position: relative; */}
 `;
 
 const Container = styled.div`
@@ -34,12 +31,28 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
+  margin: 20px;
   width: 100%;
-  background-color: darkblue;
-  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.5);
+  font-size: 20pt;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 `;
 
-const IMAGES = ["cat", "cat", "cat", "cat"];
+const H1 = styled.div`
+  margin: 20px;
+  font-family: 'Light Pixel';
+  font-size: 8vw;
+  width: 40%;
+`;
+
+const Notification = styled.div`
+
+`;
+
+const IMAGES = ["cat", "black-bunny", "bunny", "pink-cat"];
 
 
 
@@ -52,7 +65,15 @@ class App extends Component {
     this.state = {
       connected: false,
       notification: {},
-      players: [],
+      data: {
+        map_size: 5,
+        energy: [],
+      },
+      players: MOCK_PLAYERS.map((p, i) => ({
+        ...p,
+        image: IMAGES[i],
+        dead: false
+      })),
     }
     api.onConnect.add(this.onConnect);
     api.onDisconnect.add(this.onDisconnect);
@@ -73,13 +94,6 @@ class App extends Component {
     // console.log(`[${datestr}] notification:`, notification)
     this.setState(({ notification: prev, players }) => {
       let state = { notification };
-      if (!players.length) {
-        state.players = MOCK_PLAYERS.map((p, i) => ({
-          ...p,
-          image: IMAGES[i],
-          dead: false
-        }));
-      }
       // uncomment when api is working
       // if (!players.length &&
       //     prev.game_status === GameStatus.pending &&
@@ -117,21 +131,20 @@ class App extends Component {
   };
 
   render() {
-    const { connected, notification, players } = this.state;
+    const { connected, notification, players, data } = this.state;
     return (
       <Wrapper>
         <Header>
-          <h1>{connected && 'Connected with game server tcp://localhost:4243'}</h1>
-          {JSON.stringify(notification, null, 4)}
+          <H1 connected={connected}>Kawaï SoftWar</H1>
         </Header>
         <Container>
           <Content>
-            {notification.data && (
+            {data && (
               <Map
-                size={notification.data.map_size}
+                size={data.map_size}
                 // players={notification.data.players || []}
                 players={players}
-                energies={notification.data.energy || []}
+                energies={data.energy || []}
               />
             )}
           </Content>

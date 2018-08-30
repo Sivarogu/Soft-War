@@ -1,7 +1,13 @@
 import { injectGlobal } from 'styled-components';
 import theme from './theme';
+import LightPixel from './pixel.ttf';
 
 injectGlobal([`
+
+  @font-face {
+    font-family: 'Light Pixel';
+    src: url(${LightPixel}) format('woff');
+  }
 
   *, *:before, *:after {
     margin: 0;
