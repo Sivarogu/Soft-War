@@ -1,6 +1,6 @@
 import './main.scss'
 import {default as $} from 'jquery'
-import {SoftwarAPI, NotificationType, GameInfo} from 'softwar-lib-client'
+import {SoftwarAPI, GameInfo} from 'softwar-lib-client'
 
 const routerUrl = {host: 'localhost', port: 4242}
 const publisherUrl = {host: 'localhost', port: 4243}
@@ -52,24 +52,39 @@ $(() => {
 		catch (e) {}
 	}
 
-	const players: Array<SoftwarAPI> = []
-	const $addAIButton = $('#game_add_ai')
-		.click(async () => {
-			if (players.length >= 4)
-				return console.warn('already 4 IA')
-			const game = new SoftwarAPI()
-			game.connect()
-			await game.subscribePublisher(publisherUrl)
-			await game.subscribeRouter(routerUrl)
-			const identity = await game.identify()
+	const startIA = async () => {
+		if (players.length >= 4)
+			return console.warn('already has 4 IA')
+		const player = new SoftwarAPI()
 
-			let cycleInfo: GameInfo
-			while (cycleInfo = await nextCycle(game)) {
-				await bravely(game.turnRight())
-				await bravely(game.attack())
-				await bravely(game.jumpForward())
-			}
-		})
+		players.push(player)
+
+		player.connect()
+		await player.subscribePublisher(publisherUrl)
+		await player.subscribeRouter(routerUrl)
+		const identity = await player.identify()
+
+		let cycleInfo: GameInfo
+		while (cycleInfo = await player.nextCycle()) {
+			await bravely(player.turnRight())
+			await bravely(player.attack())
+			await bravely(player.jumpForward())
+		}
+	}
+
+	const players: Array<SoftwarAPI> = []
+	const $addAIButton = $('#game_add_ai').click(() => {
+		startIA()
+		$addAIButton.text('Add a sample AI (' + (4 - players.length) + ' remaining)')
+		if (players.length >= 4) {
+			$addAIButton.remove()
+			$addAISButton.remove()
+		}
+	})
+	const $addAISButton = $('#game_add_ais').click(() => {
+		for (let i = players.length; i < 4; i++)
+			$addAIButton.click()
+	})
 
 	; (window as any).api = api
 	; (window as any).players = players

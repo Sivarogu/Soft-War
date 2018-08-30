@@ -2,7 +2,9 @@ import {default as socketio} from 'socket.io-client'
 import {EasyEvent} from '@wawolf/easy-event'
 import { BridgeClient } from './bridge';
 
-export type Notification = CycleNotification
+export type Notification = {
+	type: NotificationType
+} & (CycleNotification | GameStartedNotification | GameFinishedNotification | ClientDeadNotification | ClientWinNotification)
 
 export enum NotificationType {
 	cycle_info = 0,
@@ -13,8 +15,24 @@ export enum NotificationType {
 }
 
 export interface CycleNotification {
-	type: NotificationType.cycle_info
+	notification_type: NotificationType.cycle_info
 	data: GameInfo
+}
+
+export interface GameStartedNotification {
+	notification_type: NotificationType.game_started
+}
+
+export interface GameFinishedNotification {
+	notification_type: NotificationType.game_finished
+}
+
+export interface ClientDeadNotification {
+	notification_type: NotificationType.client_dead
+}
+
+export interface ClientWinNotification {
+	notification_type: NotificationType.client_win
 }
 
 export enum GameStatus {
@@ -71,7 +89,8 @@ export class SoftwarAPI {
 
 		this._bridge.onConnect.add(() => this.onConnect.trigger(undefined))
 		this._bridge.onDisconnect.add(() => this.onDisconnect.trigger(undefined))
-		this._bridge.onNotification.add(({content: notification}) => {
+		this._bridge.onNotification.add(({content}) => {
+			const notification = content as Notification
 			this.onNotification.trigger(notification)
 			switch (notification.notification_type) {
 				case NotificationType.cycle_info:
@@ -123,10 +142,20 @@ export class SoftwarAPI {
 	}
 
 	public async ping() {
-		if (!this._routerUrl)
-			throw Error('not subscribed to a router')
 		if ((await this.queryRouter('ping', null) !== 'pong'))
 			throw Error('expected pong response')
+	}
+
+	public async nextNotification() {
+		return await new Promise<Notification>((resolve) => {
+			this.onNotification.add(resolve, true)
+		})
+	}
+
+	public async nextCycle() {
+		return await new Promise<GameInfo>((resolve) => {
+			this.onCycle.add(resolve, true)
+		})
 	}
 
 	public async identify() {

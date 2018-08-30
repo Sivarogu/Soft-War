@@ -1,7 +1,6 @@
 import {default as http} from 'http'
-import {default as zmq} from 'zeromq'
-import {default as socketio} from 'socket.io'
-import {Mapped} from './utils'
+import * as zmq from 'zeromq'
+import * as SocketIO from 'socket.io'
 
 export interface BridgePublisher {
 	url: string
@@ -9,7 +8,7 @@ export interface BridgePublisher {
 	clients: Array<SocketIO.Socket>
 }
 
-export interface BridgeRouter<TData> {
+export interface BridgeRouter {
 	url: string
 	socket: zmq.Socket
 	client: SocketIO.Socket
@@ -49,10 +48,10 @@ const logEventDebug = (eventName: string, ...message: Array<{}>) =>
 export class Bridge {
 	private _socketioServer: SocketIO.Server;
 	private _publishers: Array<BridgePublisher> = []
-	private _routers: Array<BridgeRouter<{}>> = []
+	private _routers: Array<BridgeRouter> = []
 
 	public constructor(httpServer: http.Server) {
-		this._socketioServer = socketio(httpServer)
+		this._socketioServer = SocketIO.listen(httpServer)
 		this._socketioServer.on('connection', client => {
 			logEventDebug('client connected', client.id)
 			client.on('disconnect', () => {
@@ -146,7 +145,7 @@ export class Bridge {
 		if (!router)
 			throw Error('unknown router: ' + url)
 
-		return await new Promise((resolve, reject) => {
+		return await new Promise((resolve) => {
 			router.socket.send(frame)
 			router.queue.push(response => resolve(response))
 		})
@@ -196,7 +195,7 @@ export class Bridge {
 			resolve()
 		})
 
-		const router: BridgeRouter<{}> = {
+		const router: BridgeRouter = {
 			url,
 			socket,
 			client,
@@ -212,7 +211,7 @@ export class Bridge {
 		return router
 	}
 
-	private _dropRouterBridge(router: BridgeRouter<{}>) {
+	private _dropRouterBridge(router: BridgeRouter) {
 		logEventDebug('destroying router bridge', router.client.id, router.url)
 		router.socket.close()
 	}
