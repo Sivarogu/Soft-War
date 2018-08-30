@@ -40,14 +40,15 @@ run-bridge-build:
 
 run-bridge-start:
 	docker rm --force softwar-bridge-start || true
-	docker run -it \
-		--name softwar-bridge-start \
-		--mount type=bind,source="$(root_path)",target=/app \
-		--net softwar-network \
-		--link softwar-server \
-		-p 9127:9127 \
-		softwar-dev-env /bin/bash \
-		-c "cd zmq-websocket-bridge && nodemon"
+#	docker run -it \
+#		--name softwar-bridge-start \
+#		--mount type=bind,source="$(root_path)",target=/app \
+#		--net softwar-network \
+#		--link softwar-server \
+#		-p 9127:9127 \
+#		softwar-dev-env /bin/bash \
+#		-c "cd zmq-websocket-bridge && nodemon"
+	cd $(root_path)/zmq-websocket-bridge && npm i && nodemon
 
 run-lib-client:
 	docker rm --force softwar-lib-client || true
