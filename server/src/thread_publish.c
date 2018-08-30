@@ -33,7 +33,7 @@ int thread_publish_start() {
 
     publish_cycle(socket);
     pthread_mutex_unlock(&game_info_mutex);
-    zclock_sleep(1000);
+    zclock_sleep(global_config.cycle_interval);
 
     BIND_NEG(thread_publish_start_cycles(socket));
     zsock_destroy(&socket);
@@ -48,7 +48,7 @@ int thread_publish_start_cycles(zsock_t *socket) {
         handle_dead_players(socket);
         publish_cycle(socket);
         pthread_mutex_unlock(&game_info_mutex);
-        zclock_sleep(1000);
+        zclock_sleep(global_config.cycle_interval);
     }
     if (game_info.players)
 		BIND_NEG(publish(socket, NOTIFICATION_TYPE_CLIENT_WIN, json_null()));
