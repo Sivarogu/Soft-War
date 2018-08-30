@@ -5,11 +5,11 @@
 
 typedef struct {
 	char *name;
-	int (*parser)(const char *str, t_global_config *config);
+	int (*parser)(const char *str);
 	bool is_switch;
 	bool is_required;
 } t_global_config_parser;
 
-int global_config_of_file(const char *path, t_global_config *config);
-int global_config_of_args(int argc, const char **argv, t_global_config *config);
-int global_config_of_smap(t_smap_entry *parsed_config_it, t_global_config *config);
+int global_config_of_config_file();
+int global_config_of_args(int argc, const char **argv);
+int global_config_of_smap(t_smap_entry *parsed_config, const t_global_config_parser *parsers);

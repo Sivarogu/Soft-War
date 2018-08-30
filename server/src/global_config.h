@@ -7,7 +7,8 @@ typedef struct {
 	size_t pub_port;
 	size_t cycle_interval;
 	t_log_level log_level;
-	const char *log_file;
+	char *log_file;
+	char *config_file;
 	size_t map_size;
 } t_global_config;
 

@@ -49,7 +49,8 @@ LINKER_NAME			=	gcc
 LINKER_FLAGS		=	-Wall -Wextra -Wpedantic -Werror -pedantic -lm -g
 LINKER_LIBS			=	-lczmq \
 						-lzmq \
-						-ljansson
+						-ljansson \
+						-lpthread
 
 # shorthands
 _MAKE				=	make
@@ -92,7 +93,7 @@ fclean: clean
 re: fclean all
 
 run:
-	$(BUILD_TARGET) --cycle 1000000 --log dist/logs.txt --size 5
+	$(BUILD_TARGET) --cycle 1000000 --log logs.txt --size 10
 
 watch:
 	$(_MAKE) -s __watch

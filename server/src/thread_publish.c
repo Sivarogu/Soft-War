@@ -25,19 +25,24 @@ int thread_publish_start() {
     zsock_bind(socket, "tcp://*:%zu", global_config.pub_port);
 	BIND_NEG(log_debug("publish socket bound"));
 
-    pthread_mutex_lock(&game_info_mutex);
-    pthread_cond_wait(&game_info_mutex_start_cond, &game_info_mutex);
+    while (!zsys_interrupted) {
+        pthread_mutex_lock(&game_info_mutex);
+        pthread_cond_wait(&game_info_mutex_start_cond, &game_info_mutex);
 
-	BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_STARTED, json_null(), CHANNEL_GLOBAL));
-	BIND_NEG(log_info("game started"));
+        BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_STARTED, json_null(), CHANNEL_GLOBAL));
+        BIND_NEG(log_info("game started"));
 
-    BIND_NEG(publish_cycle(socket));
-    pthread_mutex_unlock(&game_info_mutex);
-    zclock_sleep(global_config.cycle_interval);
+        BIND_NEG(publish_cycle(socket));
+        pthread_mutex_unlock(&game_info_mutex);
+        zclock_sleep(global_config.cycle_interval);
 
-    BIND_NEG(thread_publish_start_cycles(socket));
+        BIND_NEG(thread_publish_start_cycles(socket));
+        pthread_mutex_lock(&game_info_mutex);
+        pthread_cond_signal(&game_info_mutex_start_cond);
+        pthread_mutex_unlock(&game_info_mutex);
+    }
     zsock_destroy(&socket);
-	BIND_NEG(log_debug("publish socket destroyed"));
+    BIND_NEG(log_debug("publish socket destroyed"));
 	return 0;
 }
 

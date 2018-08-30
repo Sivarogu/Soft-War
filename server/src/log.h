@@ -7,6 +7,7 @@ typedef enum {
 	LOG_LEVEL_ERROR
 } t_log_level;
 
+int log_init();
 int log_log(t_log_level level, const char *str);
 int log_debug(const char *str, ...);
 int log_info(const char *str, ...);
