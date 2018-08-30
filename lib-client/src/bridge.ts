@@ -23,7 +23,6 @@ export class BridgeClient {
 		this._socket.on('connect', () => this._onSocketConnect())
 		this._socket.on('disconnect', () => this._onSocketDisconnect())
 		this._socket.on('notification', (notif: BridgeEventNotification<{}>) => this._onNotification(notif))
-		// this._socket.on('router-command', (command: any) => console.log('router command:', command))
 	}
 
 	public connect() {
@@ -32,12 +31,6 @@ export class BridgeClient {
 
 	public get socket() {
 		return this._socket
-	}
-
-	public async nextNotification<TNotif>() {
-		return await new Promise((resolve) => {
-			this.onNotification.add(notif => resolve(notif as TNotif), true)
-		})
 	}
 
 	public async publisherSubscribe(url: string) {
@@ -103,7 +96,6 @@ export class BridgeClient {
 	}
 
 	private _onNotification(notification: BridgeEventNotification<{}>) {
-		console.log('got notif')
 		this.onNotification.trigger(notification)
 	}
 }
