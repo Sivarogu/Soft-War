@@ -104,21 +104,105 @@ export class SoftwarAPI {
 
 		const routerUrl = SoftwarAPI.gameServerUrl(networkInfo)
 		await this._bridge.routerSubscribe(routerUrl)
-		this._routerUrl= routerUrl
+		this._routerUrl = routerUrl
 	}
 
-	public async queryRouter<TRet>(actionName: string, data: string) {
+	public async queryRouter(actionName: string, data: string | object | null) {
 		if (!this._routerUrl)
 			throw Error('not subscribed to a router')
 
-		const frame = `${actionName}|${data}`
-		return await this._bridge.routerSendCommand(this._routerUrl, frame)
+		const frame = `${actionName}|${typeof data === 'object' ? JSON.stringify(data) : data}`
+		const response = await this._bridge.routerSendCommand<string>(this._routerUrl, frame)
+		const matches = response.match(/(ko|ok)\|(.*)/)
+		if (!matches)
+			throw Error('invalid response: ' + response)
+		const [, status, responseData] = matches
+		if (status === 'ko')
+			throw Error(responseData || 'unknown error')
+		return responseData
+	}
+
+	public async ping() {
+		if (!this._routerUrl)
+			throw Error('not subscribed to a router')
+		if ((await this.queryRouter('ping', null) !== 'pong'))
+			throw Error('expected pong response')
 	}
 
 	public async identify() {
 		if (!this._routerUrl)
 			throw Error('not subscribed to a router')
-		await this._bridge.publisherIdentitySet(this._routerUrl, 'foo')
+		while (true) {
+			try {
+				const identity = `#0x${(Math.random() * 99).toFixed()}`
+				await this.queryRouter('identify', identity)
+				return identity
+			}
+			catch (e) {
+				if (!(e instanceof Error) || e.message !== 'identity already exists')
+					throw e
+			}
+		}
+	}
+
+	public async moveForward() {
+		await this.queryRouter('forward', null)
+	}
+
+	public async moveBackward() {
+		await this.queryRouter('backward', null)
+	}
+
+	public async moveLeft() {
+		await this.queryRouter('leftfwd', null)
+	}
+
+	public async moveRight() {
+		await this.queryRouter('rightfwd', null)
+	}
+
+	public async turnLeft() {
+		await this.queryRouter('left', null)
+	}
+
+	public async turnRight() {
+		await this.queryRouter('right', null)
+	}
+
+	public async fetchOrientation() {
+		return parseInt(await this.queryRouter('looking', null)) as Direction
+	}
+
+	public async gatherEnergy() {
+		await this.queryRouter('gather', null)
+	}
+
+	public async scanForward() {
+		return JSON.parse(await this.queryRouter('watch', null)) as Array<string>
+	}
+
+	public async attack() {
+		await this.queryRouter('attack', null)
+	}
+
+	public async fetchIdentity() {
+		return await this.queryRouter('selfid', null)
+	}
+
+	public async fetchEnergy() {
+		return parseInt(await this.queryRouter('selfstats', null))
+	}
+
+	public async inspect(identity: string) {
+		return parseInt(await this.queryRouter('inspect', identity))
+	}
+
+	public async idle() {
+		await this.queryRouter('next', null)
+	}
+
+	public async jumpForward() {
+		await this.queryRouter('jump', null)
 	}
 
 	public static gameServerUrl({host, port}: NetworkInfo) {

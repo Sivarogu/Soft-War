@@ -23,6 +23,7 @@ export class BridgeClient {
 		this._socket.on('connect', () => this._onSocketConnect())
 		this._socket.on('disconnect', () => this._onSocketDisconnect())
 		this._socket.on('notification', (notif: BridgeEventNotification<{}>) => this._onNotification(notif))
+		// this._socket.on('router-command', (command: any) => console.log('router command:', command))
 	}
 
 	public connect() {
@@ -59,8 +60,8 @@ export class BridgeClient {
 		await this._operate('publisher-subscribe', {url, identity}, () => {})
 	}
 
-	public async routerSendCommand(url: string, frame: string) {
-		await this._operate('router-command', {url, frame}, (ret) => ret)
+	public async routerSendCommand<TRet>(url: string, frame: string) {
+		return await this._operate('router-command', {url, frame}, (ret) => ret as TRet)
 	}
 
 	private _genOperationId() {
