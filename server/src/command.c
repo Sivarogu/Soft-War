@@ -3,6 +3,7 @@
 #include "log.h"
 #include "game.h"
 #include "network.h"
+#include "utils.h"
 
 static const t_action_smap_entry lobby_action_map[] = {
 	{"ping", action_ping},
@@ -44,9 +45,9 @@ int command_handle(zsock_t *router, t_command *command, const t_action_smap_entr
 
 	for (const t_action_smap_entry *action = action_map; action->name; action++)
 		if (!strcmp(action->name, command->name)) {
-			log_debug("command: %s from %s with params: %s\n", zframe_strhex(command->identity), command->name, command->params);
+			BIND_NEG(log_debug("command: %s from %s with params: %s", command->name, zframe_strhex(command->identity), command->params));
 			pthread_mutex_lock(&game_info_mutex);
-			action->exec(router, command);
+			BIND_NEG(action->exec(router, command));
 			pthread_mutex_unlock(&game_info_mutex);
 			cmd_found = true;
 			break;

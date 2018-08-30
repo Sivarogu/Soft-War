@@ -5,6 +5,8 @@
 #include "tty_color.h"
 #include "global_config.h"
 
+static FILE *log_file = NULL;
+
 const char *log_level_name(t_log_level level) {
 	switch (level) {
 		case LOG_LEVEL_DEBUG: return "DEBUG";
@@ -15,9 +17,15 @@ const char *log_level_name(t_log_level level) {
 	return NULL;
 }
 
+int log_init() {
+	BIND_MZERO((log_file = fopen(global_config.log_file, "a")), "could not open logs file: %s", global_config.log_file);
+	return 0;
+}
+
 int log_log(t_log_level level, const char *str) {
 	const char *color;
-	const char *date;
+	char *date;
+	char *datetime;
 
 	switch (level) {
 		case LOG_LEVEL_DEBUG:
@@ -34,8 +42,16 @@ int log_log(t_log_level level, const char *str) {
 			break;
 	}
 	BIND_ZERO(date = buildstr_current_time());
-	if (level >= global_config.log_level)
+	BIND_ZERO(datetime = buildstr_current_datetime());
+	if (level >= global_config.log_level) {
+		if (log_file) {
+			BIND_NEG(fprintf(log_file, "%s %-5s %s\n", datetime, log_level_name(level), str));
+			fflush(log_file);
+		}
 		BIND_NEG(printf(TTY_COLOR_FG_DARK_GREY "%s" TTY_COLOR_RESET " %s%-5s" TTY_COLOR_RESET " %s\n", date, color, log_level_name(level), str));
+	}
+	free(date);
+	free(datetime);
 	return 0;
 }
 
