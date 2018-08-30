@@ -10,11 +10,13 @@ int thread_router_start() {
 
     zsock_t *router = zsock_new(ZMQ_ROUTER);
     zsock_bind(router, "tcp://*:%zu", global_config.rep_port);
-	log_debug("router socket bound on port %zu", global_config.rep_port);
+    zsock_set_rcvtimeo(router, global_config.cycle_interval);
+    log_debug("router socket bound on port %zu", global_config.rep_port);
 	log_debug("game is pending");
     while (!zsys_interrupted && get_nb_player() < 4) {
         message = request_receive(router);
-        command_handle_lobby(router, message);
+        if (message != NULL)
+            command_handle_lobby(router, message);
     }
     pthread_mutex_lock(&game_info_mutex);
     game_info.game_status = GAME_STATUS_PENDING;
@@ -22,9 +24,12 @@ int thread_router_start() {
     pthread_mutex_unlock(&game_info_mutex);
     while (!zsys_interrupted && game_info.players && game_info.players->next) {
         message = request_receive(router);
-        command_handle_game(router, message);
+        if (message != NULL)
+            command_handle_game(router, message);
     }
+    pthread_mutex_lock(&game_info_mutex);
     game_info.game_status = GAME_STATUS_FINISHED;
+    pthread_mutex_unlock(&game_info_mutex);
     zsock_destroy(&router);
 	return 0;
 }

@@ -35,14 +35,14 @@ int thread_publish_start() {
     pthread_mutex_unlock(&game_info_mutex);
     zclock_sleep(global_config.cycle_interval);
 
-	BIND_NEG(thread_publish_start_cycles(socket));
+    BIND_NEG(thread_publish_start_cycles(socket));
     zsock_destroy(&socket);
 	log_debug("publish socket destroyed");
 	return 0;
 }
 
 int thread_publish_start_cycles(zsock_t *socket) {
-	while (!zsys_interrupted && game_info.game_status != GAME_STATUS_FINISHED) {
+    while (!zsys_interrupted && game_info.game_status != GAME_STATUS_FINISHED) {
         pthread_mutex_lock(&game_info_mutex);
         next_game_cycle();
         handle_dead_players(socket);

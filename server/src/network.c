@@ -105,6 +105,8 @@ t_command *request_receive(zsock_t *router) {
 	t_command *command;
 
 	rcv_data = zmsg_recv(router);
+	if (rcv_data == NULL)
+		return NULL;
 	command = malloc(sizeof(t_command));
 	command->identity = zmsg_pop(rcv_data);
 	empty = zmsg_pop(rcv_data);
