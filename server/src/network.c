@@ -47,7 +47,7 @@ static json_t *json_encode_cycle()
 	return cycle_json;
 }
 
-int publish(zsock_t *socket, t_notification_type type, json_t *data, char *channel) {
+int publish(zsock_t *socket, t_notification_type type, json_t *data, const char *channel) {
 	json_t *notification_json;
 	char *notification_str;
 	char *publish_message;
@@ -68,7 +68,7 @@ int publish_cycle(zsock_t *socket) {
 	json_t *cycle_json;
 
 	BIND_MZERO(cycle_json = json_encode_cycle(), "could not JSON encode cycle");
-	BIND_NEG(publish(socket, NOTIFICATION_TYPE_CYCLE_INFO, cycle_json, "Global"));
+	BIND_NEG(publish(socket, NOTIFICATION_TYPE_CYCLE_INFO, cycle_json, CHANNEL_GLOBAL));
 	free(cycle_json);
 	return 0;
 }
@@ -97,7 +97,7 @@ int response_send(zsock_t *socket, zframe_t *identity, const char *result, const
 }
 
 t_command *request_receive(zsock_t *router) {
-	char delimiter[2] = "|";
+	const char *delimiter = "|";
 	zmsg_t *rcv_data;
 	zframe_t *empty;
 	zframe_t *zmessage;
