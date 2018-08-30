@@ -16,7 +16,7 @@ int global_config_parse_pub_port(const char *str, t_global_config *config) {
 
 int global_config_parse_cycle_interval(const char *str, t_global_config *config) {
 	BIND_MTRUE(*str < '0' || *str > '9', "<cycle> must be a positive integer");
-	config->cycle_interval = atoi(str);
+	config->cycle_interval = atoi(str) / 1000;
 	return 0;
 }
 
