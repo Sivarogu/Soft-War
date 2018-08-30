@@ -2,8 +2,8 @@ import './main.scss'
 import {default as $} from 'jquery'
 import {SoftwarAPI, GameInfo} from 'softwar-lib-client'
 
-const routerUrl = {host: 'localhost', port: 4242}
-const publisherUrl = {host: 'localhost', port: 4243}
+const routerUrl = {host: 'softwar-server', port: 4242}
+const publisherUrl = {host: 'softwar-server', port: 4243}
 
 $(() => {
 	const $canvas = $('#game_canvas')
