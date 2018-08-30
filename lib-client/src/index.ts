@@ -2,7 +2,9 @@ import {default as socketio} from 'socket.io-client'
 import {EasyEvent} from '@wawolf/easy-event'
 import { BridgeClient } from './bridge';
 
-export type Notification = CycleNotification
+export type Notification = {
+	type: NotificationType
+} & (CycleNotification | GameStartedNotification | GameFinishedNotification | ClientDeadNotification | ClientWinNotification)
 
 export enum NotificationType {
 	cycle_info = 0,
@@ -13,8 +15,26 @@ export enum NotificationType {
 }
 
 export interface CycleNotification {
-	type: NotificationType.cycle_info
+	notification_type: NotificationType.cycle_info
 	data: GameInfo
+}
+
+export interface GameStartedNotification {
+	notification_type: NotificationType.game_started
+}
+
+export interface GameFinishedNotification {
+	notification_type: NotificationType.game_finished
+}
+
+export interface ClientDeadNotification {
+	notification_type: NotificationType.client_dead
+	target: string
+}
+
+export interface ClientWinNotification {
+	notification_type: NotificationType.client_win
+	target: string
 }
 
 export enum GameStatus {
@@ -65,20 +85,17 @@ export class SoftwarAPI {
 	public onDisconnect = new EasyEvent<void>()
 	public onNotification = new EasyEvent<Notification>()
 	public onCycle = new EasyEvent<GameInfo>()
+	public onGameStarted = new EasyEvent<void>()
+	public onGameFinished = new EasyEvent<void>()
+	public onClientDead = new EasyEvent<{target: string}>()
+	public onClientWin = new EasyEvent<{target: string}>()
 
 	public constructor(socketUrl?: string, autoConnect: boolean = false) {
 		this._bridge = new BridgeClient(socketUrl, autoConnect)
 
 		this._bridge.onConnect.add(() => this.onConnect.trigger(undefined))
 		this._bridge.onDisconnect.add(() => this.onDisconnect.trigger(undefined))
-		this._bridge.onNotification.add(({content: notification}) => {
-			this.onNotification.trigger(notification)
-			switch (notification.notification_type) {
-				case NotificationType.cycle_info:
-					this.onCycle.trigger(notification.data)
-					break
-			}
-		})
+		this._bridge.onNotification.add(({frame}) => this._onNotification(frame))
 	}
 
 	public connect() {
@@ -104,24 +121,147 @@ export class SoftwarAPI {
 
 		const routerUrl = SoftwarAPI.gameServerUrl(networkInfo)
 		await this._bridge.routerSubscribe(routerUrl)
-		this._routerUrl= routerUrl
+		this._routerUrl = routerUrl
 	}
 
-	public async queryRouter<TRet>(actionName: string, data: string) {
+	public async queryRouter(actionName: string, data: string | object | null) {
 		if (!this._routerUrl)
 			throw Error('not subscribed to a router')
 
-		const frame = `${actionName}|${data}`
-		return await this._bridge.routerSendCommand(this._routerUrl, frame)
+		const frame = `${actionName}|${typeof data === 'object' ? JSON.stringify(data) : data}`
+		const response = await this._bridge.routerSendCommand<string>(this._routerUrl, frame)
+		const matches = response.match(/(ko|ok)\|(.*)/)
+		if (!matches)
+			throw Error('invalid response: ' + response)
+		const [, status, responseData] = matches
+		if (status === 'ko')
+			throw Error(responseData || 'unknown error')
+		return responseData
+	}
+
+	public async ping() {
+		if ((await this.queryRouter('ping', null) !== 'pong'))
+			throw Error('expected pong response')
+	}
+
+	public async nextNotification() {
+		return await new Promise<Notification>((resolve) => {
+			this.onNotification.add(resolve, true)
+		})
+	}
+
+	public async nextCycle() {
+		return await new Promise<GameInfo>((resolve) => {
+			this.onCycle.add(resolve, true)
+		})
 	}
 
 	public async identify() {
 		if (!this._routerUrl)
 			throw Error('not subscribed to a router')
-		await this._bridge.publisherIdentitySet(this._routerUrl, 'foo')
+		while (true) {
+			try {
+				const identity = `#0x${(Math.random() * 99).toFixed()}`
+				await this.queryRouter('identify', identity)
+				return identity
+			}
+			catch (e) {
+				if (!(e instanceof Error) || e.message !== 'identity already exists')
+					throw e
+			}
+		}
+	}
+
+	public async moveForward() {
+		await this.queryRouter('forward', null)
+	}
+
+	public async moveBackward() {
+		await this.queryRouter('backward', null)
+	}
+
+	public async moveLeft() {
+		await this.queryRouter('leftfwd', null)
+	}
+
+	public async moveRight() {
+		await this.queryRouter('rightfwd', null)
+	}
+
+	public async turnLeft() {
+		await this.queryRouter('left', null)
+	}
+
+	public async turnRight() {
+		await this.queryRouter('right', null)
+	}
+
+	public async fetchOrientation() {
+		return parseInt(await this.queryRouter('looking', null)) as Direction
+	}
+
+	public async gatherEnergy() {
+		await this.queryRouter('gather', null)
+	}
+
+	public async scanForward() {
+		return JSON.parse(await this.queryRouter('watch', null)) as Array<string>
+	}
+
+	public async attack() {
+		await this.queryRouter('attack', null)
+	}
+
+	public async fetchIdentity() {
+		return await this.queryRouter('selfid', null)
+	}
+
+	public async fetchEnergy() {
+		return parseInt(await this.queryRouter('selfstats', null))
+	}
+
+	public async inspect(identity: string) {
+		return parseInt(await this.queryRouter('inspect', identity))
+	}
+
+	public async idle() {
+		await this.queryRouter('next', null)
+	}
+
+	public async jumpForward() {
+		await this.queryRouter('jump', null)
 	}
 
 	public static gameServerUrl({host, port}: NetworkInfo) {
 		return `tcp://${host}:${port}`
+	}
+
+	private _onNotification(frame: string) {
+		const matches = frame.match(/(?:([^|]+)\|)?(.*)/)
+		if (!matches)
+			return console.warn('Invalid notification frame:', frame)
+		const [, topic, data] = matches
+
+		const notification = JSON.parse(data) as Notification
+		if (notification.notification_type === NotificationType.client_dead || notification.notification_type === NotificationType.client_win)
+			notification.target = topic
+		this.onNotification.trigger(notification)
+		switch (notification.notification_type) {
+			case NotificationType.cycle_info:
+				this.onCycle.trigger(notification.data)
+				break
+			case NotificationType.game_started:
+				this.onGameStarted.trigger(undefined)
+				break
+			case NotificationType.game_finished:
+				this.onGameFinished.trigger(undefined)
+				break
+			case NotificationType.client_dead:
+				this.onClientDead.trigger({target: notification.target})
+				break
+			case NotificationType.client_win:
+				this.onClientWin.trigger({target: notification.target})
+				break
+		}
 	}
 }

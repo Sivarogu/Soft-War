@@ -8,20 +8,9 @@ sub-client:
 	rm -rf dist && mkdir -p dist && gcc sub_client.c -o dist/sub-client -lczmq -lzmq -D_GNU_SOURCE && ./dist/sub-client
 
 build-env:
-	docker network create softwar-network
 	docker build -f env.Dockerfile -t softwar-dev-env $(root_path)
 
-run-server:
-	docker rm --force softwar-server || true
-	docker run -it \
-		--name softwar-server \
-		--net softwar-network \
-		-p 4242:4242 -p 4243:4243 \
-		--mount type=bind,source="$(root_path)",target=/app \
-		softwar-dev-env /bin/bash \
-		-c "cd server && make watch"
-
-run-easy-event:
+build-easy-event:
 	docker rm --force softwar-easy-event || true
 	docker run -it \
 		--name softwar-easy-event \
@@ -29,7 +18,7 @@ run-easy-event:
 		softwar-dev-env /bin/bash \
 		-c "cd external/easy-event && npm i && tsc --watch"
 
-run-bridge-build:
+build-bridge:
 	docker rm --force softwar-bridge-build || true
 	docker run -it \
 		--name softwar-bridge-build \
@@ -38,18 +27,7 @@ run-bridge-build:
 		/bin/bash \
 		-c "cd zmq-websocket-bridge && npm i && tsc --watch"
 
-run-bridge-start:
-	docker rm --force softwar-bridge-start || true
-	docker run -it \
-		--name softwar-bridge-start \
-		--mount type=bind,source="$(root_path)",target=/app \
-		--net softwar-network \
-		--link softwar-server \
-		-p 9127:9127 \
-		softwar-dev-env /bin/bash \
-		-c "cd zmq-websocket-bridge && nodemon"
-
-run-lib-client:
+build-lib-client:
 	docker rm --force softwar-lib-client || true
 	docker run -it \
 		--name softwar-lib-client \
@@ -57,7 +35,7 @@ run-lib-client:
 		softwar-dev-env /bin/bash \
 		-c "cd lib-client && npm i && tsc --watch"
 
-run-visualizer:
+build-visualizer:
 	docker rm --force softwar-visualizer || true
 	docker run -it \
 		--name softwar-visualizer \
@@ -65,3 +43,22 @@ run-visualizer:
 		softwar-dev-env \
 		/bin/bash \
 		-c "cd visualizer && npm i && webpack --watch"
+
+dev-server:
+	docker rm --force softwar-server || true
+	docker run -it \
+		--name softwar-server \
+		-p 4242:4242 -p 4243:4243 \
+		--mount type=bind,source="$(root_path)",target=/app \
+		softwar-dev-env /bin/bash \
+		-c "cd server && make watch"
+
+run-bridge:
+	docker rm --force softwar-bridge-start || true
+	docker run -it \
+		--name softwar-bridge-start \
+		--mount type=bind,source="$(root_path)",target=/app \
+		--link softwar-server:softwar-server \
+		-p 9127:9127 \
+		softwar-dev-env /bin/bash \
+		-c "cd zmq-websocket-bridge && nodemon"

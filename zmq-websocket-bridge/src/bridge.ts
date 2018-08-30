@@ -1,7 +1,6 @@
 import {default as http} from 'http'
-import {default as zmq} from 'zeromq'
-import {default as socketio} from 'socket.io'
-import {Mapped} from './utils'
+import * as zmq from 'zeromq'
+import * as SocketIO from 'socket.io'
 
 export interface BridgePublisher {
 	url: string
@@ -9,16 +8,16 @@ export interface BridgePublisher {
 	clients: Array<SocketIO.Socket>
 }
 
-export interface BridgeRouter<TData> {
+export interface BridgeRouter {
 	url: string
 	socket: zmq.Socket
 	client: SocketIO.Socket
-	queue: Array<(data: TData) => void>
+	queue: Array<(frame: string) => void>
 }
 
-export interface BridgeEventNotification<TContent> {
+export interface BridgeEventNotification {
 	url: string
-	content: TContent
+	frame: string
 }
 
 export interface BridgeOperation {
@@ -49,11 +48,10 @@ const logEventDebug = (eventName: string, ...message: Array<{}>) =>
 export class Bridge {
 	private _socketioServer: SocketIO.Server;
 	private _publishers: Array<BridgePublisher> = []
-	private _routers: Array<BridgeRouter<{}>> = []
-	private _routerHandleQueue: Array<(data: {}) => void> = []
+	private _routers: Array<BridgeRouter> = []
 
 	public constructor(httpServer: http.Server) {
-		this._socketioServer = socketio(httpServer)
+		this._socketioServer = SocketIO.listen(httpServer)
 		this._socketioServer.on('connection', client => {
 			logEventDebug('client connected', client.id)
 			client.on('disconnect', () => {
@@ -105,7 +103,7 @@ export class Bridge {
 		const publisher = this._publishers.find(publisher => publisher.url === url)
 		if (publisher) {
 			if (~publisher.clients.indexOf(client))
-				throw Error('already subscribed')
+				throw Error('already subscribed: ' +  url)
 			publisher.clients.push(client)
 		}
 		else
@@ -142,15 +140,14 @@ export class Bridge {
 		router.socket.identity = identity
 	}
 
-	private async _handleRouterCommand<TData>(url: string, client: SocketIO.Socket, frame: string) {
+	private async _handleRouterCommand(url: string, client: SocketIO.Socket, frame: string) {
 		const router = this._routers.find(router => router.url === url && router.client === client)
 		if (!router)
 			throw Error('unknown router: ' + url)
-		console.log('got router command:', frame)
 
-		return new Promise((resolve, reject) => {
+		return await new Promise((resolve) => {
 			router.socket.send(frame)
-			router.queue.push(resolve)
+			router.queue.push(response => resolve(response))
 		})
 	}
 
@@ -178,9 +175,9 @@ export class Bridge {
 		this._publishers.push(publisher)
 
 		socket.on('message', message => {
-			const notification: BridgeEventNotification<{}> = {
+			const notification: BridgeEventNotification = {
 				url,
-				content: JSON.parse(message.toString())
+				frame: message.toString()
 			}
 			for (const client of publisher.clients)
 				client.emit('notification', notification)
@@ -198,7 +195,7 @@ export class Bridge {
 			resolve()
 		})
 
-		const router: BridgeRouter<{}> = {
+		const router: BridgeRouter = {
 			url,
 			socket,
 			client,
@@ -206,12 +203,15 @@ export class Bridge {
 		}
 		this._routers.push(router)
 
-		socket.on('message', message => router.queue.splice(1)[0](message))
+		socket.on('message', message => {
+			const handler = router.queue.splice(0)[0]
+			handler && handler(message.toString())
+		})
 
 		return router
 	}
 
-	private _dropRouterBridge(router: BridgeRouter<{}>) {
+	private _dropRouterBridge(router: BridgeRouter) {
 		logEventDebug('destroying router bridge', router.client.id, router.url)
 		router.socket.close()
 	}

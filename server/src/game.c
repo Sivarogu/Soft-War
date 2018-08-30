@@ -32,10 +32,10 @@ int next_game_cycle() {
 		player->action_points = 2;
 		player->energy -= 2;
 	}
-	if (get_nb_energy() < (game_info.map_size * game_info.map_size - get_nb_player())) {
+	if (get_nb_energy() < (global_config.map_size * global_config.map_size - get_nb_player())) {
 		do {
-			x = rand() % game_info.map_size;
-			y = rand() % game_info.map_size;
+			x = rand() % global_config.map_size;
+			y = rand() % global_config.map_size;
 		} while (is_pos_occupied(x, y, true));
 		t_energy_cell *energy = energy_cell_new();
 		energy->x = x;
@@ -87,7 +87,7 @@ void init_player_location(t_player *player, size_t map_size, int player_rank) {
 }
 
 int is_pos_occupied(size_t x, size_t y, bool include_nrg) {
-	if (x >= game_info.map_size || y >= game_info.map_size)
+	if (x >= global_config.map_size || y >= global_config.map_size)
 		return 1;
 	t_player *player = game_info.players;
 	while (player != NULL) {

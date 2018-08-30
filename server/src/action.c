@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "game.h"
 #include "network.h"
+#include "global_config.h"
 
 int action_ping(zsock_t *router, t_command *command) {
 	response_send(router, command->identity, "ok", "pong");
@@ -32,7 +33,7 @@ int action_identify(zsock_t *router, t_command *command) {
 		response_send(router, command->identity, "ko", "null");
 	} else {
 		player = player_new(zframe_strhex(command->identity), strdup(command->params));
-		init_player_location(player, game_info.map_size, nb_player + 1);
+		init_player_location(player, global_config.map_size, nb_player + 1);
 		response_send(router, command->identity, "ok", "null");
 	}
 	free(cmd_identity);
