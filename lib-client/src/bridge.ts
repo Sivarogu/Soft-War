@@ -103,7 +103,6 @@ export class BridgeClient {
 	}
 
 	private _onNotification(notification: BridgeEventNotification<{}>) {
-		console.log('got notif')
 		this.onNotification.trigger(notification)
 	}
 }

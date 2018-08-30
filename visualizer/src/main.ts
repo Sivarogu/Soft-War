@@ -47,20 +47,30 @@ $(() => {
 
 	const sleep = (timeout: number) => new Promise((resolve) => setTimeout(resolve, timeout))
 	const nextCycle = (api: SoftwarAPI) => new Promise<GameInfo>((resolve) => api.onCycle.add(resolve, true))
+	const bravely = async <T>(p: Promise<T>) => {
+		try {await p}
+		catch (e) {}
+	}
 
-	//const players = []
-	$('#game_add_ai').click(async () => {
-		const game = new SoftwarAPI()
-		game.connect()
-		await game.subscribePublisher(publisherUrl)
-		await game.subscribeRouter(routerUrl)
-		const identity = await game.identify()
+	const players: Array<SoftwarAPI> = []
+	const $addAIButton = $('#game_add_ai')
+		.click(async () => {
+			if (players.length >= 4)
+				return console.warn('already 4 IA')
+			const game = new SoftwarAPI()
+			game.connect()
+			await game.subscribePublisher(publisherUrl)
+			await game.subscribeRouter(routerUrl)
+			const identity = await game.identify()
 
-		let cycleInfo: GameInfo
-		while (cycleInfo = await nextCycle(game)) {
-			console.log(identity, 'got cycle info:', cycleInfo)
-		}
-	})
+			let cycleInfo: GameInfo
+			while (cycleInfo = await nextCycle(game)) {
+				await bravely(game.turnRight())
+				await bravely(game.attack())
+				await bravely(game.jumpForward())
+			}
+		})
 
 	; (window as any).api = api
+	; (window as any).players = players
 })
