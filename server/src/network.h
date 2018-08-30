@@ -11,7 +11,7 @@ typedef enum {
 	NOTIFICATION_TYPE_CLIENT_WIN
 } t_notification_type;
 
-int publish(zsock_t *socket, t_notification_type type, json_t *data);
+int publish(zsock_t *socket, t_notification_type type, json_t *data, char *channel);
 int publish_cycle(zsock_t *socket);
 int response_send(zsock_t *socket, zframe_t *identity, const char *result, const char *data);
 t_command *request_receive(zsock_t *router);

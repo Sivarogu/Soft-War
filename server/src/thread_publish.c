@@ -11,7 +11,7 @@ static int handle_dead_players(zsock_t *socket) {
     for (t_player *player = game_info.players; player; player = next_player) {
         next_player = player->next;
         if (player->energy <= 0 || player->energy > 100) {
-			BIND_NEG(publish(socket, NOTIFICATION_TYPE_CLIENT_DEAD, json_null()));
+            BIND_NEG(publish(socket, NOTIFICATION_TYPE_CLIENT_DEAD, json_null(), game_info.players->id));
             player_destroy(player);
         }
     }
@@ -28,7 +28,7 @@ int thread_publish_start() {
     pthread_mutex_lock(&game_info_mutex);
     pthread_cond_wait(&game_info_mutex_start_cond, &game_info_mutex);
 
-	BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_STARTED, json_null()));
+	BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_STARTED, json_null(), "Global"));
 	log_debug("game started");
 
     publish_cycle(socket);
@@ -51,8 +51,8 @@ int thread_publish_start_cycles(zsock_t *socket) {
         zclock_sleep(global_config.cycle_interval);
     }
     if (game_info.players)
-		BIND_NEG(publish(socket, NOTIFICATION_TYPE_CLIENT_WIN, json_null()));
-	BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_FINISHED, json_null()));
+		BIND_NEG(publish(socket, NOTIFICATION_TYPE_CLIENT_WIN, json_null(), game_info.players->id));
+	BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_FINISHED, json_null(), "Global"));
 	return 0;
 }
 
