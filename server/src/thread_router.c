@@ -16,6 +16,8 @@ int thread_router_start() {
         log_debug("game is pending");
         pthread_mutex_lock(&game_info_mutex);
         game_info.game_status = GAME_STATUS_PENDING;
+        while (game_info.energy_cells)
+            energy_cell_destroy(game_info.energy_cells);
         pthread_mutex_unlock(&game_info_mutex);
         while (!zsys_interrupted && get_nb_player() < 4)
         {
