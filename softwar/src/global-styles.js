@@ -9,6 +9,10 @@ injectGlobal([`
     src: url(${LightPixel}) format('woff');
   }
 
+  @import url('https://fonts.googleapis.com/css?family=Pangolin|Schoolbell');
+  @import url('https://fonts.googleapis.com/css?family=Montserrat');
+
+
   *, *:before, *:after {
     margin: 0;
     padding: 0;
