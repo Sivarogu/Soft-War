@@ -37,7 +37,7 @@ const Img = styled.div`
   background-size: cover;
 `;
 
-const MAX = 50;
+const MAX = 100;
 
 const Energy = styled.div`
   position: relative;

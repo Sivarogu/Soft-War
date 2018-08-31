@@ -11,7 +11,6 @@ const bravely = async (p, defaultValue) => {
   catch (e) {return defaultValue}
 }
 
-// const IMAGES = ["cat", "black-bunny", "bunny", "pink-cat"];
 
 const goTo = (player, energy) => {
   let dist = energy.x - player.x;

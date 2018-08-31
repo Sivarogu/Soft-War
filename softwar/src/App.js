@@ -79,8 +79,6 @@ class App extends Component {
     api.onConnect.add(this.onConnect);
     api.onDisconnect.add(this.onDisconnect);
     api.onNotification.add(this.onNotification);
-    // api.onGameStarted.add(this.onGameStart);
-    // api.onGameFinished.add(this.onGameFinished);
     api.onClientDead.add(this.onClientDead);
     api.connect();
   }

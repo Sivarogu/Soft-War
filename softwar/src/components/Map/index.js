@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import styled, { keyframes } from 'styled-components';
 import {  Direction } from 'softwar-lib-client';
 
-const animation = keyframes`
+const bounce = keyframes`
   0% {
     transform: translateY(0%);
   }
+  50% {
+    transform: translateY(20%);
+  }
   100% {
-    transform: translateY(50%);
+    transform: translateY(0%);
   }
 `;
 
@@ -33,6 +36,14 @@ const Container = styled.div`
 
 `;
 
+const getAnimation = () => {
+  return `
+    ::after {
+      animation: ${bounce} 100ms linear;
+    }
+  `;
+};
+
 const getPlayer = (player) => {
   const { looking, image } = player;
   return `
@@ -42,10 +53,8 @@ const getPlayer = (player) => {
       content: " ";
       width: 100%;
       height: 70px;
-      // top: 0;
       left: 0;
       bottom: 0;
-      // bottom: 90%;
       right: 0;
       margin: 0 auto;
       background-image: url(/img/${image}-${Direction[looking]}.png);
@@ -53,8 +62,6 @@ const getPlayer = (player) => {
       background-position: center;
       background-size: contain;
       z-index: 9;
-      // animation: ${animation} 200ms forwards;
-      // box-shadow: 0px 9px 6px -8px rgba(0, 0, 0, 0.6);
     }
   `;
 }
@@ -63,6 +70,10 @@ const getEnergy = (energy) => {
   return `
     ::after {
       content: " ";
+      top: 0;
+      left:0;
+      bottom: 0;
+      right: 0;
       width: 50%;
       height: 50%;
       background-image: url(/img/apple.png);
@@ -99,6 +110,7 @@ const EmptyCell = styled.div`
   flex-shrink: 0;
   ${({ player, energy }) => !player && energy && getEnergy(energy)};
   ${({ player }) => player && getPlayer(player)};
+  ${({ player, energy }) => player && energy && getAnimation()};
 `;
 
 class Map extends Component {
