@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { SoftwarAPI, GameStatus as GAME_STATUS } from 'softwar-lib-client';
+import { SoftwarAPI, GameStatus as GAME_STATUS, NotificationType } from 'softwar-lib-client';
 import Map from './components/Map';
 import GameHandler from './components/GameHandler';
 import PlayersDisplayer from './components/PlayerDisplayer';
 import styled from 'styled-components';
 
 const api = new SoftwarAPI("http://localhost:9127");
+const IMAGES = ["cat", "black-bunny", "bunny", "pink-cat"];
 
 const Wrapper = styled.div`
   width: 100%;
@@ -50,6 +51,7 @@ const H1 = styled.div`
   text-align: center;
   font-family: 'Light Pixel';
   font-size: 5vw;
+  height: 145px;
   width: 40%;
   color: white;
   -webkit-text-stroke-width: 1px;
@@ -102,13 +104,41 @@ class App extends Component {
   onNotification = (notification) => {
     const date = (new Date()).toString();
     const datestr = date.split(' GMT')[0];
-    const { data } = notification;
-    if (data) {
-      this.setState({
-        mapSize: data.map_size,
-        status: data.game_status,
-        energyCells: data.energy_cells,
-      });
+    const { data, notification_type: type  } = notification;
+    let i = 0;
+    if (type === NotificationType.cycle_info && data) {
+        this.setState((prev) => {
+          let state = {
+            mapSize: data.map_size,
+            status: data.game_status,
+            energyCells: data.energy_cells,
+          };
+          let players;
+          if (i === 0) {
+            players = data.players.reduce((players, p, n) => {
+            return {
+              ...players,
+                [p.name]: {
+                  ...p,
+                  image: IMAGES[n],
+                  dead: false,
+                }
+              };
+            }, {})
+          } else {
+            players = data.players.reduce((players, p, n) => {
+              return {
+                ...players,
+                [p.name]: {
+                  ...players[p.name],
+                  ...p
+                }
+              }
+            }, prev.players);
+          }
+          return ({ ...state, players });
+        });
+        i++;
     }
     console.log(`[${datestr}] notification:`, notification);
   }
@@ -132,18 +162,17 @@ class App extends Component {
 
   render() {
     const {
-      connected,
-      notification: { data },
       players,
       energyCells,
-      mapSize
+      mapSize,
+      status,
     } = this.state;
 
     return (
         <Wrapper>
           <Header>
             <H1>Kawaï SoftWar</H1>
-            <GameHandler updatePlayer={this.updatePlayer} players={players} />
+            <GameHandler status={status} updatePlayer={this.updatePlayer} players={players} />
           </Header>
           <Container>
             <PlayersDisplayer players={Object.values(players)} />

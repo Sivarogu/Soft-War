@@ -97,8 +97,8 @@ const EmptyCell = styled.div`
   };
   flex: ${({ size, rowGap }) => `0 1 calc(${size}*100% - ${size % 1 ? rowGap / 2 : 0}px)`};
   flex-shrink: 0;
+  ${({ player, energy }) => !player && energy && getEnergy(energy)};
   ${({ player }) => player && getPlayer(player)};
-  ${({ energy }) => energy && getEnergy(energy)};
 `;
 
 class Map extends Component {
