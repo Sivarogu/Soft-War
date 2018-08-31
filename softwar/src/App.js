@@ -73,8 +73,8 @@ class App extends Component {
       notification: {},
       mapSize: 10,
       energyCells: [],
-      players: {},
       status: GAME_STATUS.pending,
+      players: {},
     }
     api.onConnect.add(this.onConnect);
     api.onDisconnect.add(this.onDisconnect);
@@ -95,8 +95,7 @@ class App extends Component {
   onClientDead = ({ target: name}) => {
     this.setState(({ players }) => {
       console.log('players : ', players);
-      console.log('On CLient is dead !! = ', name, players[name]);
-
+      console.log('On Client is dead !! = ', name, players[name]);
       return { players: { ...players, [name]: { ...players[name], dead: true } }};
     });
   }
@@ -131,6 +130,7 @@ class App extends Component {
           } else {
             players = Object.values(prev.players).reduce((players, p, n) => {
               const self = data.players.find((pl) => pl.name === p.name);
+              console.log(`Player ${p.name} = `, self);
               if (self) {
                 return {
                   ...players,
@@ -180,6 +180,8 @@ class App extends Component {
       mapSize,
       status,
     } = this.state;
+
+    console.log('STATUS :', status);
 
     return (
         <Wrapper>

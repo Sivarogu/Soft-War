@@ -40,7 +40,7 @@ const getClosestEnergy = (player, cycleInfo) => {
   let minDistance = Math.pow(cycleInfo.map_size, 2);
   cycleInfo.energy_cells.forEach(cell => {
       let distance = Math.abs(player.x - cell.x) + Math.abs(player.y - cell.y);
-      if (distance > minDistance){
+      if (distance < minDistance){
           minDistance = distance;
           energy = cell;
       }
@@ -108,18 +108,23 @@ class StartGame extends Component {
 
   startGame = () => {
     const { status } = this.props;
-    if (status === GAME_STATUS.finished) {
+    if (status === GAME_STATUS.finished || status === GAME_STATUS.pending ) {
       this.setState({ clients: [] });
-    }
-    for (let i = 0; i < this.state.totalClients; i++) {
-      this.startIA(i);
+      for (let i = 0; i < this.state.totalClients; i++) {
+        this.startIA(i);
+      }
     }
   };
 
   render() {
     const { status }  = this.props;
     return (
-      <Button width="180px" green onClick={this.startGame}>
+      <Button
+        width="180px"
+        disabled={status === GAME_STATUS.started}
+        green
+        onClick={this.startGame}
+      >
         {status === GAME_STATUS.pending && "Start Game"}
         {status === GAME_STATUS.started && "Running"}
         {status === GAME_STATUS.finished && "New Game"}
