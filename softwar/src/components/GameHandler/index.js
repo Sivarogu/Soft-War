@@ -20,14 +20,14 @@ const goTo = (player, energy) => {
       dist = energy.y - player.y;
       look_dir_pos--;
   }
-  if ((dist > 0 && player.looking === 2) ||
-      (dist < 0 && player.looking === 0)) {
+  if ((dist > 0 && look_dir_pos === 2) ||
+      (dist < 0 && look_dir_pos === 0)) {
       return "forward";
-  } else if ((dist === -1 && player.looking === 2) ||
-      (dist === 1 && player.looking === 0)) {
+  } else if ((dist === -1 && look_dir_pos === 2) ||
+      (dist === 1 && look_dir_pos === 0)) {
       return "backward";
-  } else if ((dist < 0 && player.looking === 1) ||
-      (dist > 0 && ((player.looking + 4) % 4)  === 3)) {
+  } else if ((dist < 0 && look_dir_pos === 1) ||
+      (dist > 0 && ((look_dir_pos + 4) % 4)  === 3)) {
       return "leftfwd";
   } else {
       return "right";

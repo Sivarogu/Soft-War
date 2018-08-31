@@ -107,15 +107,17 @@ class App extends Component {
     const { data, notification_type: type  } = notification;
     let i = 0;
     if (type === NotificationType.cycle_info && data) {
+        i++;
         this.setState((prev) => {
           let state = {
             mapSize: data.map_size,
             status: data.game_status,
             energyCells: data.energy_cells,
           };
-          let players;
-          if (i === 0) {
-            players = data.players.reduce((players, p, n) => {
+          let players, firstPlayers;
+          if (data.energy_cells.length === 0) {
+            console.log('firstplayer');
+            firstPlayers = players = data.players.reduce((players, p, n) => {
             return {
               ...players,
                 [p.name]: {
@@ -124,21 +126,32 @@ class App extends Component {
                   dead: false,
                 }
               };
-            }, {})
+            }, {});
+            state = { ...state, players, firstPlayers };
           } else {
-            players = data.players.reduce((players, p, n) => {
+            players = Object.values(prev.players).reduce((players, p, n) => {
+              const self = data.players.find((pl) => pl.name === p.name);
+              if (self) {
+                return {
+                  ...players,
+                  [p.name]: {
+                    ...p,
+                    ...self
+                  }
+                }
+              }
               return {
                 ...players,
                 [p.name]: {
-                  ...players[p.name],
-                  ...p
+                  ...p,
+                  dead: true,
                 }
               }
             }, prev.players);
+            state = { ...state, players };
           }
-          return ({ ...state, players });
+          return (state);
         });
-        i++;
     }
     console.log(`[${datestr}] notification:`, notification);
   }
