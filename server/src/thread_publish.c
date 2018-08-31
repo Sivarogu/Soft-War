@@ -28,7 +28,7 @@ int thread_publish_start() {
     while (!zsys_interrupted) {
         pthread_mutex_lock(&game_info_mutex);
         pthread_cond_wait(&game_info_mutex_start_cond, &game_info_mutex);
-
+        game_info.game_status = GAME_STATUS_STARTED;
         BIND_NEG(publish(socket, NOTIFICATION_TYPE_GAME_STARTED, json_null(), CHANNEL_GLOBAL));
         BIND_NEG(log_info("game started"));
 
