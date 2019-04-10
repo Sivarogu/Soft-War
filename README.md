@@ -1,13 +1,12 @@
 # SoftWar
-SoftWar Projet ETNA
+School project to learn about websockets, threads and multi-languages projects
 
 ## Begin
 ```sh
 ./install.sh
 ```
 
-## How to...
-### 1. Develop
+## How to Develop
 You can make the server makefile watch for changes and recompile/run using
 ```bash
 make -C server watch
